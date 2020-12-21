@@ -1,7 +1,7 @@
 <style>
     /*
     結束後獎勵分配
-    換日後vote 各職業資料夾欄位預先開好
+    投票規則修正 2009行
     */
 body{
     background:#555;
@@ -921,9 +921,32 @@ function MenuClick(id,act)
                             };
                         }
 
+                        if(game.char_create==System.member.account)
+                        if( parseInt(game.config.char_count)===Object.keys(game.char_list).length )
+                        {
+                            menu["start_button"] = {
+                                "type":"button",
+                                "value":"開始遊戲",
+                                "span":"",
+                                "event":{"click":function(){
+                                    GameFunc("start",game.sn);
+                                }}
+                            };
+                        }
+
+
                         var _div = document.createElement("div");
                         _div.className = "info";
-                        _div.innerHTML = "目前加入玩家：【"+Object.keys(game.char_list).length+"】名，還差【"+(game.config.char_count-Object.keys(game.char_list).length)+"】名玩家";
+                        _div.innerHTML = "";
+
+                        if(char_list_self!==undefined)
+                            _div.innerHTML += "此局的名稱為【"+char_list_self.nickname+"】<BR>";
+
+                        _div.innerHTML += "目前加入玩家【"+Object.keys(game.char_list).length+"】名，還差【"+(game.config.char_count-Object.keys(game.char_list).length)+"】名玩家";
+
+                        if((game.config.char_count-Object.keys(game.char_list).length)==0)
+                            _div.innerHTML+="，等待召集人按【開始遊戲】。";
+
                         div.appendChild(_div);
                     }
                     else
@@ -935,6 +958,7 @@ function MenuClick(id,act)
                     if(System.char.game_sn===game.sn)
                     {
                         delete menu.game_password;
+                        delete menu.game_nickname;
 
                         if(game.end==="ready")
                         menu["button2"] = {
@@ -946,11 +970,9 @@ function MenuClick(id,act)
                             }}
                         };
                     }
-                    else if(System.char.game_sn!=="")
+                    
+                    if(System.char.game_sn!==game.sn && System.char.game_sn!=="")
                     {
-                        delete menu.game_password;
-                        delete menu.game_nickname;
-
                         if(game.end==="ready")
                         menu["button3"] = {
                             "type":"button",
@@ -962,7 +984,6 @@ function MenuClick(id,act)
                             }}
                         };
                     }
-
                     
 
                     RowMake(menu,div,id);
@@ -1062,7 +1083,6 @@ function GameFunc(act,id = "")
 
                     _char.job = idx.split("_")[0];
 
-                    //_char[ _char.job ] = {"0":""};
                     _char.vote = {"0":{"value":"","time":""}};
                     _char.pass = {"0":{"value":"","time":""}};
                     _char.wolf = {"0":{"value":"","time":""}};
@@ -1074,11 +1094,11 @@ function GameFunc(act,id = "")
                     game.char_list[ _char.id ] = _char;
                 }
             }
-
-            console.log(char_list);
-
-            if(char_list.length!=0)
-            for(var i=0;i<=char_list.length;i++)
+            
+            
+            var for_max = char_list.length;
+            if(for_max!=0)
+            for(var i=0;i<for_max;i++)
             {
                 var _char = char_list.pop();
                 _char.job = "human";
@@ -1093,6 +1113,7 @@ function GameFunc(act,id = "")
 
                 game.char_list[ _char.id ] = _char;
             }
+
 
             game.end = "start";
             game.nowtime = "human";
@@ -1312,8 +1333,8 @@ function GameFunc(act,id = "")
 
             if( parseInt(game.config.char_count)===Object.keys(game.char_list).length )
             {
-                GameFunc("start",game.sn);
-                return;
+                //GameFunc("start",game.sn);
+                //return;
             }
 
             alert("加入遊戲成功");
@@ -1955,158 +1976,176 @@ function Vote(choice)
             game.char_list[ System.member.account ][ System.char.action ][ day ].value = choice;
 
             var live_count = 0;
+            var vote_count = 0;
             var vote = {};
+            var max = {};
             for(var account in game.char_list)
             {
                 if(game.char_list[account].dead.status!=="dead") live_count++;
 
-                game.char_list[ account ][ System.char.action ][ day ] = game.char_list[ account ][ System.char.action ][ day ]||{};
-
                 if( game.char_list[account][ System.char.action ][day].value!==undefined && 
                     game.char_list[account][ System.char.action ][day].value!=="")
                 {
-                    vote[ game.char_list[account][ System.char.action ][day].value ] = 
-                    vote[ game.char_list[account][ System.char.action ][day].value ]||0;
+                    vote_count++;
 
-                    vote[ game.char_list[account][ System.char.action ][day].value ]++;
+                    vote[ account ] = game.char_list[account][ System.char.action ][day].value;
                 }            
             }
 
-            console.log(vote);
             
             
-            for(var key in vote)
+            //for(var key in vote)
+            if( Object.keys(vote).length===live_count)
             {
-                if( vote[key] > Math.floor(live_count/2) )
+                for(var key in vote)
                 {
-                    if(game.nowday.toString()==="0")
+                    max[ vote[key] ] = max[ vote[key] ]+1||1;
+                }
+
+                var _target = {"value":0,"key":""};
+                for(var key in max)
+                {
+                    if(max[key]>=_target.value)
                     {
-                        if(key==="pass")
-                        {
-                            var time_ary = ["human","wolf"];
-                            Shuffle(time_ary);
-                            key = time_ary.pop();
-                        }
-
-                        game.nowday = (game.nowday-(-1)).toString();
-                        game.nowtime = key;
-
-                        for(var _act in game.char_list)
-                        {
-                            var _char = game.char_list[_act];
-                            _char.vote[game.nowday] = {"value":"","time":""};
-                            _char.pass[game.nowday] = {"value":"","time":""};
-                            _char.wolf[game.nowday] = {"value":"","time":""};
-                            _char.divine[game.nowday] = {"value":"","time":""};
-                            _char.psychic[game.nowday] = {"value":"","time":""};
-                            _char.guard[game.nowday] = {"value":"","time":""};
-                            _char.human[game.nowday] = {"value":"","time":""};
-                        }
-
-                        DB.ref("/game/"+System.char.game_sn).update(game);
-
+                        _target.value = max[key];
+                        _target.key = key;
                     }
-                    else
+                }
+
+                console.log(_target);
+                return;
+                
+
+
+
+                if(game.nowday.toString()==="0")
+                {
+                    if(key==="pass")
                     {
-                        if(game.nowtime=="human")//白天吊人
+                        var time_ary = ["human","wolf"];
+                        Shuffle(time_ary);
+                        key = time_ary.pop();
+                    }
+
+                    game.nowday = (game.nowday-(-1)).toString();
+                    game.nowtime = key;
+
+                    for(var _act in game.char_list)
+                    {
+                        var _char = game.char_list[_act];
+                        _char.vote[game.nowday] = {"value":"","time":""};
+                        _char.pass[game.nowday] = {"value":"","time":""};
+                        _char.wolf[game.nowday] = {"value":"","time":""};
+                        _char.divine[game.nowday] = {"value":"","time":""};
+                        _char.psychic[game.nowday] = {"value":"","time":""};
+                        _char.guard[game.nowday] = {"value":"","time":""};
+                        _char.human[game.nowday] = {"value":"","time":""};
+                    }
+
+                    DB.ref("/game/"+System.char.game_sn).update(game);
+
+                }
+                else
+                {
+                    if(game.nowtime=="human")//白天吊人
+                    {
+                        if(key!="pass")
+                        game.char_list[ key ].dead = 
                         {
-                            if(key!="pass")
-                            game.char_list[ key ].dead = 
+                            "status":"dead",
+                            "day":game.nowday,
+                            "time":firebase.database.ServerValue.TIMESTAMP,
+                            "type":"vote"
+                        };
+                    }
+                    else//晚上
+                    {
+                        var psychic_id = "";
+                        for(var account in game.char_list)
+                        {
+                            if(game.char_list[account][ game.char_list[account].job ][ day ]!==undefined)
+                            _target[ game.char_list[account].job ] = 
+                                game.char_list[account][ game.char_list[account].job ][ day ].value;
+
+                            if(game.char_list[account].job==="psychic")
+                                psychic_id = account;
+
+                            //撈出今天白天吊死的玩家ID
+                            if( game.char_list[account].dead.status==="dead" &&
+                            game.char_list[account].dead.day===day &&
+                            game.char_list[account].dead.type=="vote" )
+                            {
+                                _target.psychic = account;
+                            }
+                        }
+
+                        if(psychic_id!=="")
+                        {
+                            game.char_list[ psychic_id ].psychic = {};
+                            game.char_list[ psychic_id ].psychic[day] = game.char_list[ psychic_id ].psychic[day]||{};
+                            game.char_list[ psychic_id ].psychic[day].value = _target.psychic;
+                        }
+
+
+                        if(_target.wolf!==undefined && _target.wolf!=="")
+                        if(_target.wolf!==_target.guard)
+                        {
+                            game.char_list[ _target.wolf ].dead = 
                             {
                                 "status":"dead",
                                 "day":game.nowday,
                                 "time":firebase.database.ServerValue.TIMESTAMP,
-                                "type":"vote"
+                                "type":"wolf"
                             };
                         }
-                        else//晚上
+                    }
+
+
+                    var _human = 0,_wolf = 0;
+                    for(var account in game.char_list)
+                    {
+                        if(game.char_list[account].dead.status==="dead") continue;
+                        
+                        if(game.char_list[account].job==="wolf") _wolf++;
+                        if(game.char_list[account].job!=="wolf") _human++;
+                    }
+
+                    if(_human===0 || _wolf===0 || _human===_wolf)
+                    {
+                        game.end = "end";
+
+                        Award(game,_wolf);
+                    }
+                    else
+                    {
+                        if(game.nowtime==="human")
                         {
-                            var psychic_id = "";
-                            for(var account in game.char_list)
-                            {
-                                if(game.char_list[account][ game.char_list[account].job ][ day ]!==undefined)
-                                _target[ game.char_list[account].job ] = 
-                                    game.char_list[account][ game.char_list[account].job ][ day ].value;
-
-                                if(game.char_list[account].job==="psychic")
-                                    psychic_id = account;
-
-                                //撈出今天白天吊死的玩家ID
-                                if( game.char_list[account].dead.status==="dead" &&
-                                game.char_list[account].dead.day===day &&
-                                game.char_list[account].dead.type=="vote" )
-                                {
-                                    _target.psychic = account;
-                                }
-                            }
-
-                            if(psychic_id!=="")
-                            {
-                                game.char_list[ psychic_id ].psychic = {};
-                                game.char_list[ psychic_id ].psychic[day] = game.char_list[ psychic_id ].psychic[day]||{};
-                                game.char_list[ psychic_id ].psychic[day].value = _target.psychic;
-                            }
-
-
-                            if(_target.wolf!==undefined && _target.wolf!=="")
-                            if(_target.wolf!==_target.guard)
-                            {
-                                game.char_list[ _target.wolf ].dead = 
-                                {
-                                    "status":"dead",
-                                    "day":game.nowday,
-                                    "time":firebase.database.ServerValue.TIMESTAMP,
-                                    "type":"wolf"
-                                };
-                            }
-                        }
-
-
-                        var _human = 0,_wolf = 0;
-                        for(var account in game.char_list)
-                        {
-                            if(game.char_list[account].dead.status==="dead") continue;
-                            
-                            if(game.char_list[account].job==="wolf") _wolf++;
-                            if(game.char_list[account].job!=="wolf") _human++;
-                        }
-
-                        if(_human===0 || _wolf===0 || _human===_wolf)
-                        {
-                            game.end = "end";
-
-                            Award(game,_wolf);
+                            game.nowtime = "wolf";
                         }
                         else
                         {
-                            if(game.nowtime==="human")
-                            {
-                                game.nowtime = "wolf";
-                            }
-                            else
-                            {
-                                game.nowtime = "human";
-                                game.nowday-=(-1);
+                            game.nowtime = "human";
+                            game.nowday-=(-1);
 
 
-                                for(var _act in game.char_list)
-                                {
-                                    var _char = game.char_list[_act];
-                                    _char.vote[game.nowday] = {"value":"","time":""};
-                                    _char.pass[game.nowday] = {"value":"","time":""};
-                                    _char.wolf[game.nowday] = {"value":"","time":""};
-                                    _char.divine[game.nowday] = {"value":"","time":""};
-                                    _char.psychic[game.nowday] = {"value":"","time":""};
-                                    _char.guard[game.nowday] = {"value":"","time":""};
-                                    _char.human[game.nowday] = {"value":"","time":""};
-                                }
+                            for(var _act in game.char_list)
+                            {
+                                var _char = game.char_list[_act];
+                                _char.vote[game.nowday] = {"value":"","time":""};
+                                _char.pass[game.nowday] = {"value":"","time":""};
+                                _char.wolf[game.nowday] = {"value":"","time":""};
+                                _char.divine[game.nowday] = {"value":"","time":""};
+                                _char.psychic[game.nowday] = {"value":"","time":""};
+                                _char.guard[game.nowday] = {"value":"","time":""};
+                                _char.human[game.nowday] = {"value":"","time":""};
                             }
                         }
-
-                        DB.ref("/game/"+System.char.game_sn).update( game );
                     }
-                    console.log(key+"過半數");
+
+                    DB.ref("/game/"+System.char.game_sn).update( game );
                 }
+                console.log(key+"過半數");
+            
             }
             
             console.log(choice);
@@ -2141,9 +2180,8 @@ function Award(game,wolf)
 
     if(wolf!=0) win = "wolf";
 
-    DB.ref("/char/"+ System.member.account ).once( "value",_c=>{
+    DB.ref("/char/" ).once( "value",_c=>{
         char = _c.val();
-    }).then(function(){
 
         for(var _a in game.char_list)
         {
@@ -2152,6 +2190,7 @@ function Award(game,wolf)
                 if(win=="wolf")
                 {
                     char[_a].wolf_win+=1;
+                    char[_a].item.money+=(10*Object.keys(game.char_list).length);
                 }
                 else
                 {
@@ -2167,6 +2206,7 @@ function Award(game,wolf)
                 else
                 {
                     char[_a].huma_win+=1;
+                    char[_a].item.money+=(10*Object.keys(game.char_list).length)/2;
                 }
             }
         }
