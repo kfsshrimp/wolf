@@ -751,13 +751,26 @@ function MenuClick(id,act)
                                 GameFunc("quit",this.id);
                             }}
                         },
+                        {
+                            "title":"準備狀態",
+                            "html":"ready_status",
+                            "id":"id",
+                            "class":"btn"
+                        }
                     ];
                     
 
-                    if(game.char_create!==System.member.account || game.end!=="ready")
+                    if(game.char_create!=System.member.account || 
+                    game.end!=="ready")
                     {
                         title.splice(1,1);
                     }
+
+                    if(game.end!=="ready")
+                    {
+                        title.splice(1,1);
+                    }
+
 
                     if(game.char_list[ System.member.account ]!==undefined)
                     if( game.char_list[ System.member.account ].job==="divine" ||
@@ -821,7 +834,7 @@ function MenuClick(id,act)
 
 
                         list[ list_idx ].quit = "踢除玩家";
-
+                        list[ list_idx ].ready_status = (game.char_list[account].ready=="yes")?"準備完成":"<span class=red>尚未準備</span>";
 
                         list[ list_idx ]._divine_psychic = "無";
 
