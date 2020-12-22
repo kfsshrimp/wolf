@@ -755,19 +755,22 @@ function MenuClick(id,act)
                                 }}
                             };
 
-                            var _ready_btn = "準備完成";
-                            if(char_list_self.ready=="yes")
-                                _ready_btn = "等待房主開始遊戲";
+                            if(System.member.account!=game.char_create)
+                            {
+                                var _ready_btn = "準備完成";
+                                if(char_list_self.ready=="yes")
+                                    _ready_btn = "等待房主開始遊戲";
 
 
-                            menu["button3"] = {
-                                "type":"button",
-                                "value":_ready_btn,
-                                "span":"",
-                                "event":{"click":function(){
-                                    GameFunc("start",game.sn);
-                                }}
-                            };
+                                menu["button3"] = {
+                                    "type":"button",
+                                    "value":_ready_btn,
+                                    "span":"",
+                                    "event":{"click":function(){
+                                        GameFunc("start",game.sn);
+                                    }}
+                                };
+                            }
                         }
 
                         if(System.char.game_sn!=game.sn && System.char.game_sn!="")
@@ -784,50 +787,89 @@ function MenuClick(id,act)
                             };
                         }
 
-                        
-                        
                         RowMake(menu,div,id);
                         div.appendChild( document.createElement("p") );
-                        
                     }
+
+                    var _div = document.createElement("div");
+                    _div.className = "info";
+                    _div.innerHTML = "購買道具";
+                    div.appendChild(_div);
+
+                
+                    item = game.item;
+
+                    var title = [
+                        {
+                            "title":"道具",
+                            "html":"name"
+                        },
+                        {
+                            "title":"價錢",
+                            "html":"money"
+                        },
+                        {
+                            "title":"購買",
+                            "html":"buy",
+                            "id":"id",
+                            "class":"btn",
+                            "event":{"click":function(){
+                                BuyItem(this.id);
+                            }}
+                        }
+                    ];
+                    var list = [];
+                    for(var key in item)
+                    {
+                        var idx = list.length;
+
+                        list[idx] = item[key];
+                        list[idx].name = key;
+                        list[idx].id = key;
+                        list[idx].buy = "購買";
+                    }
+
+                    ListMake(title,list,div,id);
+                    div.appendChild( document.createElement("p") );
+
 
                     var title = [];
 
                     title = [
-                        {
-                            "title":"玩家列表",
-                            "html":"nickname_word",
-                            "id":"id",
-                            "class":"btn vote",
-                            "event":{"click":function(){
-                                if(System.char.action==="vote")
+                    {
+                        "title":"玩家列表",
+                        "html":"nickname_word",
+                        "id":"id",
+                        "class":"btn vote",
+                        "event":{"click":function(){
+                            if(System.char.action==="vote")
+                            {
+                                if(confirm("確定要投票給"+this.innerHTML+"嗎?")===true)
                                 {
-                                    if(confirm("確定要投票給"+this.innerHTML+"嗎?")===true)
-                                    {
-                                        clearInterval( System.focus_timer);
-                                        Vote(this.id);
-                                        
-                                    }
+                                    clearInterval( System.focus_timer);
+                                    Vote(this.id);
+                                    
                                 }
+                            }
 
-                                var action_word = {
-                                    "wolf":"咬殺",
-                                    "divine":"占卜",
-                                    "guard":"守衛",
-                                };
+                            var action_word = {
+                                "wolf":"咬殺",
+                                "divine":"占卜",
+                                "guard":"守衛",
+                            };
 
-                                if(System.char.action!=="vote" && 
-                                System.char.action!==undefined && 
-                                System.char.action!=="")
+                            if(System.char.action!=="vote" && 
+                            System.char.action!==undefined && 
+                            System.char.action!=="")
+                            {
+                                if(confirm("確定要"+action_word[ game.char_list[System.member.account].job ]+this.innerHTML+"嗎?")===true)
                                 {
-                                    if(confirm("確定要"+action_word[ game.char_list[System.member.account].job ]+this.innerHTML+"嗎?")===true)
-                                    {
-                                        clearInterval( System.focus_timer);
-                                        Vote(this.id);
-                                    }
+                                    clearInterval( System.focus_timer);
+                                    Vote(this.id);
                                 }
-                            }}
-                        },
+                            }
+                        }}
+                    },
                         {
                             "title":"",
                             "html":"quit",
@@ -1021,6 +1063,7 @@ function MenuClick(id,act)
 
                     RowMake(menu,div,id);
                     div.appendChild( document.createElement("p") );
+                
                 });
 
             });
@@ -1263,12 +1306,18 @@ function GameFunc(act,id = "")
         System.char.game_time = "";
         System.char.game_end = "";
 
-        DB.ref("/char/"+System.member.account).update(System.char);
-        DB.ref("/game/"+new_game.sn).set( new_game );
+        DB.ref("/item/").once( "value",function(item){
+            item = item.val();
 
-        alert("遊戲建立完成");
-        MenuClick("game_list","close");
-        return;
+            new_game.item = item;
+
+            DB.ref("/char/"+System.member.account).update(System.char);
+            DB.ref("/game/"+new_game.sn).set( new_game );
+
+            alert("遊戲建立完成");
+            MenuClick("game_list","close");
+            return;
+        });        
     }
 
 
@@ -2291,6 +2340,11 @@ function Award(game,wolf)
     });    
 }
 
+
+function BuyItem(name)
+{
+
+}
 
 
 
