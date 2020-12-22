@@ -2,6 +2,8 @@
     /*
     結束後獎勵分配
     投票規則修正 2009行
+    人狼頻道
+    開場買道具
     */
 body{
     background:#555;
@@ -269,12 +271,12 @@ var System = {
         "game_memo":{
             "name":"遊戲說明",
             "type":"textarea",
-            "value":"遊戲說明/噗浪討論網址/備註"
+            "value":"遊戲說明"
         },
         "game_nickname":{
-            "name":"此局名稱",
+            "name":"此局角色名稱",
             "type":"text",
-            "value":"此局名稱"
+            "value":"此局角色名稱"
         },
         "char_count":{
             "name":"遊戲人數",
@@ -940,12 +942,9 @@ function MenuClick(id,act)
                         _div.innerHTML = "";
 
                         if(char_list_self!==undefined)
-                            _div.innerHTML += "此局的名稱為【"+char_list_self.nickname+"】<BR>";
+                            _div.innerHTML += "此局的角色名稱為【"+char_list_self.nickname+"】<BR>";
 
-                        _div.innerHTML += "目前加入玩家【"+Object.keys(game.char_list).length+"】名，還差【"+(game.config.char_count-Object.keys(game.char_list).length)+"】名玩家";
-
-                        if((game.config.char_count-Object.keys(game.char_list).length)==0)
-                            _div.innerHTML+="，等待召集人按【開始遊戲】。";
+                        _div.innerHTML += "目前加入玩家【"+Object.keys(game.char_list).length+"】名，還差【"+(game.config.char_count-Object.keys(game.char_list).length)+"】名玩家<BR>按下【準備完成】鈕等待房主【開始遊戲】";
 
                         div.appendChild(_div);
                     }
@@ -961,14 +960,30 @@ function MenuClick(id,act)
                         delete menu.game_nickname;
 
                         if(game.end==="ready")
-                        menu["button2"] = {
-                            "type":"button",
-                            "value":"退出此遊戲",
-                            "span":"",
-                            "event":{"click":function(){
-                                GameFunc("quit",System.member.account);
-                            }}
-                        };
+                        {
+                            menu["button2"] = {
+                                "type":"button",
+                                "value":"退出此遊戲",
+                                "span":"",
+                                "event":{"click":function(){
+                                    GameFunc("quit",System.member.account);
+                                }}
+                            };
+
+                            var _ready_btn = "準備完成";
+                            if(char_list_self.ready=="yes")
+                                _ready_btn = "等待房主開始遊戲";
+
+
+                            menu["button3"] = {
+                                "type":"button",
+                                "value":_ready_btn,
+                                "span":"",
+                                "event":{"click":function(){
+                                    GameFunc("start",game.sn);
+                                }}
+                            };
+                        }
                     }
                     
                     if(System.char.game_sn!==game.sn && System.char.game_sn!=="")
@@ -1063,13 +1078,42 @@ function GameFunc(act,id = "")
                 return;
             }
 
+
+            if(System.char.game_sn!=game.char_create)
+            {
+                if(game.char_list[ System.member.account ].ready!="yes")
+                    game.char_list[ System.member.account ].ready = "yes";
+                else
+                    game.char_list[ System.member.account ].ready = "no";
+
+                DB.ref("/game/"+id).set( game );
+                
+                MenuClick("game_list","close");
+                return;
+            }
+            else
+            {
+                
+            }
+
             var char_list = [];
+            var check_ready = true;
             for(var account in game.char_list)
             {
                 var idx = char_list.length;
                 char_list[ idx ] = game.char_list[account];
                 char_list[ idx ].id = account;
+
+                if(game.char_list[account].ready!="yes") 
+                    check_ready = false;
             }
+
+            if(check_ready!=true)
+            {
+                alert("尚有玩家沒按下準備完成");
+                return;
+            }
+
             
             for(var idx in game.config)
             {
@@ -1315,6 +1359,7 @@ function GameFunc(act,id = "")
             game.char_list[ System.member.account ] = {
                 "nickname":game_nickname,
                 "name":System.char.name,
+                "ready":"no",
                 "dead":{"status":"live"}
             };
 
@@ -2002,29 +2047,39 @@ function Vote(choice)
                     max[ vote[key] ] = max[ vote[key] ]+1||1;
                 }
 
-                var _target = {"value":0,"key":""};
+                console.log(max);
+                var _vote_key = [];
+                var _vote_value = [];
                 for(var key in max)
                 {
-                    if(max[key]>=_target.value)
-                    {
-                        _target.value = max[key];
-                        _target.key = key;
-                    }
+                    _vote_value.push( max[key] );
                 }
 
-                console.log(_target);
-                return;
-                
+                var _vote_value_max = Math.max.apply(null,_vote_value);
+
+                for(var key in max)
+                {
+                    if(_vote_value_max===max[key])
+                        _vote_key.push(key);
+                }
 
 
 
                 if(game.nowday.toString()==="0")
                 {
+                    console.log(_vote_key);
+                    var key;
+                    if(_vote_key.length>1)
+                    {
+                        Shuffle(_vote_key);
+                    }
+                    key = _vote_key.pop();
+
                     if(key==="pass")
                     {
-                        var time_ary = ["human","wolf"];
-                        Shuffle(time_ary);
-                        key = time_ary.pop();
+                        _vote_key = ["human","wolf"];
+                        Shuffle(_vote_key);
+                        key = _vote_key.pop();
                     }
 
                     game.nowday = (game.nowday-(-1)).toString();
@@ -2043,20 +2098,25 @@ function Vote(choice)
                     }
 
                     DB.ref("/game/"+System.char.game_sn).update(game);
-
                 }
                 else
                 {
+
                     if(game.nowtime=="human")//白天吊人
                     {
-                        if(key!="pass")
-                        game.char_list[ key ].dead = 
+                        if(_vote_key.length<=2)
+                        for(var key in _vote_key)
                         {
-                            "status":"dead",
-                            "day":game.nowday,
-                            "time":firebase.database.ServerValue.TIMESTAMP,
-                            "type":"vote"
-                        };
+                            if(_vote_key[key]=="pass") continue;
+
+                            game.char_list[ _vote_key[key] ].dead = 
+                            {
+                                "status":"dead",
+                                "day":game.nowday,
+                                "time":firebase.database.ServerValue.TIMESTAMP,
+                                "type":"vote"
+                            };
+                        }
                     }
                     else//晚上
                     {
@@ -2140,15 +2200,12 @@ function Vote(choice)
                                 _char.human[game.nowday] = {"value":"","time":""};
                             }
                         }
+                    
                     }
 
                     DB.ref("/game/"+System.char.game_sn).update( game );
-                }
-                console.log(key+"過半數");
-            
+                }            
             }
-            
-            console.log(choice);
 
             DB.ref("/game/"+System.char.game_sn+"/char_list/"+System.member.account+"/"+System.char.action+"/"+day).set({
                 "value":choice,
