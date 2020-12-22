@@ -918,7 +918,15 @@ function MenuClick(id,act)
 
 
                         list[ list_idx ].quit = "踢除玩家";
-                        list[ list_idx ].ready_status = (game.char_list[account].ready=="yes")?"準備完成":"<span class=red>尚未準備</span>";
+                        
+                        if(account==game.char_create)
+                        {
+                            list[ list_idx ].ready_status = "房主";
+                        }
+                        else
+                        {
+                            list[ list_idx ].ready_status = (game.char_list[account].ready=="yes")?"準備完成":"<span class=red>尚未準備</span>";
+                        }
 
                         list[ list_idx ]._divine_psychic = "無";
 
@@ -1089,7 +1097,7 @@ function GameFunc(act,id = "")
             }
 
 
-            if(System.char.game_sn!=game.char_create)
+            if(System.member.account!=id)
             {
                 if(game.char_list[ System.member.account ].ready!="yes")
                     game.char_list[ System.member.account ].ready = "yes";
@@ -1103,8 +1111,9 @@ function GameFunc(act,id = "")
             }
             else
             {
-                
+                game.char_list[ System.member.account ].ready = "yes";
             }
+
 
             var char_list = [];
             var check_ready = true;
