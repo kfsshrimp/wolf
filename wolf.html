@@ -703,7 +703,93 @@ function MenuClick(id,act)
                     if(game.end==="start") GameStart(div,game,id);
                     if(game.end==="end") GameEnd(div,game,id);
 
-                    var char_list_self = game.char_list[ System.member.account ];
+                    var char_list_self = game.char_list[ System.member.account ] || {};
+
+                    if(game.end=="ready")
+                    {
+                        var _div = document.createElement("div");
+                        _div.className = "info";
+                        _div.innerHTML = "";
+
+                        if(char_list_self.nickname!==undefined)
+                            _div.innerHTML += "此局的角色名稱為【"+char_list_self.nickname+"】<BR>";
+
+                        _div.innerHTML += "目前加入玩家【"+Object.keys(game.char_list).length+"】名，還差【"+(game.config.char_count-Object.keys(game.char_list).length)+"】名玩家<BR>按下【準備完成】鈕等待房主【開始遊戲】";
+
+                        div.appendChild(_div);
+
+
+                        if(System.char.game_sn==="")
+                        {
+                            menu["button"] = {
+                                "type":"button",
+                                "value":"加入遊戲",
+                                "span":"",
+                                "event":{"click":function(){
+                                    GameFunc("join");
+                                }}
+                            };
+                        }
+
+                        if(game.char_create==System.member.account)
+                        if( parseInt(game.config.char_count)===Object.keys(game.char_list).length )
+                        {
+                            menu["start_button"] = {
+                                "type":"button",
+                                "value":"開始遊戲",
+                                "span":"",
+                                "event":{"click":function(){
+                                    GameFunc("start",game.sn);
+                                }}
+                            };
+                        }
+
+                        if(System.char.game_sn===game.sn)
+                        {
+                            menu["button2"] = {
+                                "type":"button",
+                                "value":"退出此遊戲",
+                                "span":"",
+                                "event":{"click":function(){
+                                    GameFunc("quit",System.member.account);
+                                }}
+                            };
+
+                            var _ready_btn = "準備完成";
+                            if(char_list_self.ready=="yes")
+                                _ready_btn = "等待房主開始遊戲";
+
+
+                            menu["button3"] = {
+                                "type":"button",
+                                "value":_ready_btn,
+                                "span":"",
+                                "event":{"click":function(){
+                                    GameFunc("start",game.sn);
+                                }}
+                            };
+                        }
+
+                        if(System.char.game_sn!=game.sn && System.char.game_sn!="")
+                        {
+                            if(game.end=="ready")
+                            menu["button3"] = {
+                                "type":"button",
+                                "value":"已加入其他遊戲，前往已加入遊戲",
+                                "span":"",
+                                "event":{"click":function(){
+                                    System.content = System.char.game_sn;
+                                    MenuClick("game_list","close");
+                                }}
+                            };
+                        }
+
+                        
+                        
+                        RowMake(menu,div,id);
+                        div.appendChild( document.createElement("p") );
+                        
+                    }
 
                     var title = [];
 
@@ -754,8 +840,6 @@ function MenuClick(id,act)
                         {
                             "title":"準備狀態",
                             "html":"ready_status",
-                            "id":"id",
-                            "class":"btn"
                         }
                     ];
                     
@@ -900,7 +984,9 @@ function MenuClick(id,act)
                     ListMake(title,list,div,id);
                     div.appendChild( document.createElement("p") );
 
+
                     
+                    menu = [];
                     for(var i in System.create_game_row)
                     {
                         menu[i] = {
@@ -917,101 +1003,12 @@ function MenuClick(id,act)
                         }
                     }
 
+                    if(System.char.game_sn==game.sn)
+                        delete menu.game_nickname;
                     
 
                     if(game["game_password"]==="")
                         menu.game_password = {"type":"hidden","span":""};
-
-                    if(game.end==="ready")
-                    {
-                        if(System.char.game_sn==="")
-                        {
-                            menu["button"] = {
-                                "type":"button",
-                                "value":"加入遊戲",
-                                "span":"",
-                                "event":{"click":function(){
-                                    GameFunc("join");
-                                }}
-                            };
-                        }
-
-                        if(game.char_create==System.member.account)
-                        if( parseInt(game.config.char_count)===Object.keys(game.char_list).length )
-                        {
-                            menu["start_button"] = {
-                                "type":"button",
-                                "value":"開始遊戲",
-                                "span":"",
-                                "event":{"click":function(){
-                                    GameFunc("start",game.sn);
-                                }}
-                            };
-                        }
-
-
-                        var _div = document.createElement("div");
-                        _div.className = "info";
-                        _div.innerHTML = "";
-
-                        if(char_list_self!==undefined)
-                            _div.innerHTML += "此局的角色名稱為【"+char_list_self.nickname+"】<BR>";
-
-                        _div.innerHTML += "目前加入玩家【"+Object.keys(game.char_list).length+"】名，還差【"+(game.config.char_count-Object.keys(game.char_list).length)+"】名玩家<BR>按下【準備完成】鈕等待房主【開始遊戲】";
-
-                        div.appendChild(_div);
-                    }
-                    else
-                    {
-                        delete menu.game_nickname;
-                    }
-
-
-                    if(System.char.game_sn===game.sn)
-                    {
-                        delete menu.game_password;
-                        delete menu.game_nickname;
-
-                        if(game.end==="ready")
-                        {
-                            menu["button2"] = {
-                                "type":"button",
-                                "value":"退出此遊戲",
-                                "span":"",
-                                "event":{"click":function(){
-                                    GameFunc("quit",System.member.account);
-                                }}
-                            };
-
-                            var _ready_btn = "準備完成";
-                            if(char_list_self.ready=="yes")
-                                _ready_btn = "等待房主開始遊戲";
-
-
-                            menu["button3"] = {
-                                "type":"button",
-                                "value":_ready_btn,
-                                "span":"",
-                                "event":{"click":function(){
-                                    GameFunc("start",game.sn);
-                                }}
-                            };
-                        }
-                    }
-                    
-                    if(System.char.game_sn!==game.sn && System.char.game_sn!=="")
-                    {
-                        if(game.end==="ready")
-                        menu["button3"] = {
-                            "type":"button",
-                            "value":"已加入其他遊戲，前往已加入遊戲",
-                            "span":"",
-                            "event":{"click":function(){
-                                System.content = System.char.game_sn;
-                                MenuClick("game_list","close");
-                            }}
-                        };
-                    }
                     
 
                     RowMake(menu,div,id);
@@ -1345,7 +1342,7 @@ function GameFunc(act,id = "")
             
             if(game_nickname==="")
             {
-                alert("此局名稱不可空白");
+                alert("此局角色名稱不可空白");
                 return;
             }
 
