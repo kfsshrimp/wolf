@@ -249,6 +249,9 @@ var System = {
         "huma_win":0,
         "wolf_lose":0,
         "huma_lose":0,
+        "game_day":"0",
+        "game_time":"",
+        "game_end":"",
         "vote":{"0":{"value":"","time":""}},
         "pass":{"0":{"value":"","time":""}},
         "wolf":{"0":{"value":"","time":""}},
@@ -1195,14 +1198,6 @@ function GameFunc(act,id = "")
                     var _char = char_list.pop();
 
                     _char.job = idx.split("_")[0];
-
-                    _char.vote = {"0":{"value":"","time":""}};
-                    _char.pass = {"0":{"value":"","time":""}};
-                    _char.wolf = {"0":{"value":"","time":""}};
-                    _char.divine = {"0":{"value":"","time":""}};
-                    _char.psychic = {"0":{"value":"","time":""}};
-                    _char.guard = {"0":{"value":"","time":""}};
-                    _char.human = {"0":{"value":"","time":""}};
                     
                     game.char_list[ _char.id ] = _char;
                 }
@@ -1215,14 +1210,6 @@ function GameFunc(act,id = "")
             {
                 var _char = char_list.pop();
                 _char.job = "human";
-                
-                _char.vote = {"0":{"value":"","time":""}};
-                _char.pass = {"0":{"value":"","time":""}};
-                _char.wolf = {"0":{"value":"","time":""}};
-                _char.divine = {"0":{"value":"","time":""}};
-                _char.psychic = {"0":{"value":"","time":""}};
-                _char.guard = {"0":{"value":"","time":""}};
-                _char.human = {"0":{"value":"","time":""}};
 
                 game.char_list[ _char.id ] = _char;
             }
@@ -1442,9 +1429,6 @@ function GameFunc(act,id = "")
             game.time_last = firebase.database.ServerValue.TIMESTAMP;
 
             System.char.game_sn = game.sn;
-            System.char.game_day = "0";
-            System.char.game_time = "";
-            System.char.game_end = "";
 
             
             DB.ref("/char/"+System.member.account).update(System.char);
