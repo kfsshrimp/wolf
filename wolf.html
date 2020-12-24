@@ -843,10 +843,16 @@ function MenuClick(id,act)
                         list[idx].id = key;
 
                         if(game.char_list[System.member.account])
-                        if(game.char_list[System.member.account].item[key]!==undefined)
-                            list[idx].buy = "已購買";
+                        {
+                            if(game.char_list[System.member.account].item[key]!==undefined)
+                                list[idx].buy = "已購買";
+                            else
+                                list[idx].buy = "購買";
+                        }
                         else
-                            list[idx].buy = "購買";
+                        {
+                            delete title["2"];
+                        }
                     }
 
                     ListMake(title,list,div,id);
