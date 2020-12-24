@@ -1,9 +1,12 @@
 <style>
     /*
     結束後獎勵分配
-    投票規則修正 2009行
     人狼頻道
     開場買道具
+    
+DB 資料庫排序
+DB 資料庫分頁
+
     */
 body{
     background:#555;
@@ -229,10 +232,7 @@ div#Mask.off{
 <meta name="viewport" content="width=device-width">
 <script src="https://www.gstatic.com/firebasejs/5.5.6/firebase.js"></script>
 <script>
-/*
-DB 資料庫排序
-DB 資料庫分頁
-*/
+
 var System = {
     "version":2,
     "config":null,
@@ -841,7 +841,12 @@ function MenuClick(id,act)
                         list[idx] = item[key];
                         list[idx].name = key;
                         list[idx].id = key;
-                        list[idx].buy = "購買";
+
+                        if(game.char_list[System.member.account])
+                        if(game.char_list[System.member.account].item[key]!==undefined)
+                            list[idx].buy = "已購買";
+                        else
+                            list[idx].buy = "購買";
                     }
 
                     ListMake(title,list,div,id);
@@ -2353,11 +2358,24 @@ function BuyItem(name)
         var item = game.item[name];
 
         var char_item = game.char_list[ System.member.account ].item;
-        game.char_list[ System.member.account ].item[ name ] = item;
 
+        if(char_item[name]!==undefined)
+            delete game.char_list[ System.member.account ].item[ name ];
+        else
+        {
+            for(var key in game.char_list[ System.member.account ].item)
+            {
+                if(key=="money") continue;
+                delete game.char_list[ System.member.account ].item[key];
+            }
+            
+            game.char_list[ System.member.account ].item[ name ] = item;
+        }
 
         DB.ref("/game/"+System.char.game_sn).update(game);
 
+        MenuClick("game_list","close");
+        return;
     });
 }
 
