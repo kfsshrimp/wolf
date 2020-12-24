@@ -244,11 +244,11 @@ var System = {
     "char_default":{
         "name":"",
         "game_sn":"",
-        "item":{"money":0},
         "wolf_win":0,
         "huma_win":0,
         "wolf_lose":0,
         "huma_lose":0,
+        "item":{"money":0},
         "game_day":"0",
         "game_time":"",
         "game_end":"",
@@ -258,7 +258,9 @@ var System = {
         "divine":{"0":{"value":"","time":""}},
         "psychic":{"0":{"value":"","time":""}},
         "guard":{"0":{"value":"","time":""}},
-        "human":{"0":{"value":"","time":""}}
+        "human":{"0":{"value":"","time":""}},
+        "ready":"no",
+        "dead":{"status":"live"}
     },
     "c_s_word":{
         "name":"帳號名稱",
@@ -266,6 +268,7 @@ var System = {
         "huma_win":"人勝場數",
         "wolf_lose":"狼敗場數",
         "huma_lose":"人敗場數",
+        "item":"持有金錢",
     },
     "create_game_row":{
         "name":{
@@ -544,8 +547,10 @@ function MenuClick(id,act)
                 "class":"number"
             }
 
-
+            if(i=="item") menu[i].value = System.char.item.money;              
         }
+
+
         menu.name.class = "";
         if(System.char.name==="")
         {
@@ -803,7 +808,7 @@ function MenuClick(id,act)
 
                     var _div = document.createElement("div");
                     _div.className = "info";
-                    _div.innerHTML = "購買道具";
+                    _div.innerHTML = "購買道具，目前持有金額【"+System.char.item.money+"】";
                     div.appendChild(_div);
 
                 
@@ -1280,12 +1285,11 @@ function GameFunc(act,id = "")
             }
         }
 
+
         new_game.char_list = {};
-        new_game.char_list[ System.member.account ] = {
-            "nickname":game_nickname,
-            "name":System.char.name,
-            "dead":{"status":"live"}
-        };
+        new_game.char_list[ System.member.account ] = System.char;
+        new_game.char_list[ System.member.account ].nickname = game_nickname;
+
             
         new_game.char_create = System.member.account;
         new_game.char_last = System.member.account;
@@ -1417,13 +1421,8 @@ function GameFunc(act,id = "")
                 }
             }
 
-
-            game.char_list[ System.member.account ] = {
-                "nickname":game_nickname,
-                "name":System.char.name,
-                "ready":"no",
-                "dead":{"status":"live"}
-            };
+            game.char_list[ System.member.account ] = System.char;
+            game.char_list[ System.member.account ].nickname = game_nickname;
 
             game.char_last = System.member.account;
             game.time_last = firebase.database.ServerValue.TIMESTAMP;
@@ -2334,7 +2333,32 @@ function Award(game,wolf)
 
 function BuyItem(name)
 {
+    DB.ref("/game/"+System.char.game_sn).once( "value",function(game){
+        game = game.val();
 
+        if(game===null)
+        {
+            System.content = "list";
+
+            System.char.game_sn = "";
+            System.char.game_day = "";
+            System.char.game_time = "";
+            System.char.game_end = "";
+
+            DB.ref("/char/"+System.member.account).update( System.char );
+            MenuClick(id,"open");
+            return;
+        }
+
+        var item = game.item[name];
+
+        var char_item = game.char_list[ System.member.account ].item;
+        game.char_list[ System.member.account ].item[ name ] = item;
+
+
+        DB.ref("/game/"+System.char.game_sn).update(game);
+
+    });
 }
 
 
@@ -2562,7 +2586,7 @@ function EditChar()
             location.reload();
             return;
         }
-        MenuClick("char_status","open");
+        MenuClick("char_info","open");
     });
 }
 
