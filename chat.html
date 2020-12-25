@@ -53,7 +53,9 @@ function MenuLi()
         
     }
 
-    if(System.game.char_list[ System.member.account ].job=="wolf")
+    if(System.game.char_list[ System.member.account ]!==undefined)
+    if(System.game.char_list[ System.member.account ].job=="wolf" ||
+    System.game.end=="end")
         list["chat_wolf"] = {"name":"人狼對話室"};
 
 
@@ -136,7 +138,6 @@ function CreateChat(div,id)
     var ul = document.createElement("ul");
     _div.appendChild(ul);
 
-
     var btn = document.createElement("div");
     btn.className = "info btn";
     btn.innerHTML = "發言";
@@ -149,6 +150,8 @@ function CreateChat(div,id)
         var new_text = {};
         new_text.char_create = System.member.account;
         new_text.time_create = firebase.database.ServerValue.TIMESTAMP;
+        new_text.account = self_char.account;
+        new_text.name = self_char.name;
         new_text.nickname = self_char.nickname;
         new_text.day = System.game.nowday;
         new_text.type = id;

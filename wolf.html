@@ -972,12 +972,14 @@ function GameFunc(act,id = "")
             if( parseInt(game.config.char_count)!==Object.keys(game.char_list).length )
             {
                 alert("玩家人數不足");
+                MenuClick("game_list","close");
                 return;
             }
 
             if(check_ready!=true)
             {
                 alert("尚有玩家沒按下準備完成");
+                MenuClick("game_list","close");
                 return;
             }
             
@@ -1917,8 +1919,6 @@ function Vote(choice)
                         _vote_key.push(key);
                 }
 
-
-
                 if(game.nowday.toString()==="0")
                 {
                     console.log(_vote_key);
@@ -1955,7 +1955,6 @@ function Vote(choice)
                 }
                 else
                 {
-
                     if(game.nowtime=="human")//白天吊人
                     {
                         if(_vote_key.length<=2)
