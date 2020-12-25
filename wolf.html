@@ -245,9 +245,9 @@ var System = {
         "name":"",
         "game_sn":"",
         "wolf_win":0,
-        "huma_win":0,
+        "human_win":0,
         "wolf_lose":0,
-        "huma_lose":0,
+        "human_lose":0,
         "item":{"money":0},
         "game_day":"0",
         "game_time":"",
@@ -265,9 +265,9 @@ var System = {
     "c_s_word":{
         "name":"帳號名稱",
         "wolf_win":"狼勝場數",
-        "huma_win":"人勝場數",
+        "human_win":"人勝場數",
         "wolf_lose":"狼敗場數",
-        "huma_lose":"人敗場數",
+        "human_lose":"人敗場數",
         "item":"持有金錢",
     },
     "create_game_row":{
@@ -831,6 +831,18 @@ function MenuClick(id,act)
                                 "id":"id",
                                 "class":"btn",
                                 "event":{"click":function(){
+                                    for(var n in item)
+                                    {
+                                        if(n==this.id)
+                                        {
+                                            if(System.char.item.money<item[n].money)
+                                            {
+                                                alert("金錢不足");
+                                                return;
+                                            }
+                                        }
+                                    }
+
                                     BuyItem(this.id);
                                 }}
                             }
@@ -1220,7 +1232,7 @@ function GameFunc(act,id = "")
             }
             console.log(use_item_list);
             
-            
+
             for(var item_name in use_item_list)
             {
                 var job = game.item[item_name].job;
@@ -1237,17 +1249,17 @@ function GameFunc(act,id = "")
                     for(var account of use_item_list[item_name])
                     {
                         if(lose_max<=
-                        game.char_list[ account ].huma_lose - 
+                        game.char_list[ account ].human_lose - 
                         (-1)*game.char_list[ account ].wolf_lose)
                         {
                             lose_max = 
-                            game.char_list[ account ].huma_lose - 
+                            game.char_list[ account ].human_lose - 
                             (-1)*game.char_list[ account ].wolf_lose;
                         }
                     }
                     for(var account of use_item_list[item_name])
                     {
-                        if(lose_max == game.char_list[ account ].huma_lose - 
+                        if(lose_max == game.char_list[ account ].human_lose - 
                         (-1)*game.char_list[ account ].wolf_lose)
                         {
                             _set_job.push(account);
@@ -2292,12 +2304,34 @@ function Vote(choice)
                     }
                     else//晚上
                     {
+                        
                         var psychic_id = "";
                         for(var account in game.char_list)
                         {
+                            //console.log( JSON.parse(JSON.stringify( _target)) );
+
                             if(game.char_list[account][ game.char_list[account].job ][ day ]!==undefined)
-                            _target[ game.char_list[account].job ] = 
-                                game.char_list[account][ game.char_list[account].job ][ day ].value;
+                            {
+                                if(_target[ game.char_list[account].job ]!="")
+                                {
+                                    if(game.char_list[account][ game.char_list[account].job ][ day ].value!="")
+                                    {
+                                        var ary = [
+                                            _target[ game.char_list[account].job ],
+                                            game.char_list[account][ game.char_list[account].job ][ day ].value
+                                        ];
+
+                                        Shuffle(ary);
+                                        console.log(ary);
+
+                                        _target[ game.char_list[account].job ] = ary.pop();
+                                    }
+                                }
+                                else
+                                {
+                                    _target[ game.char_list[account].job ] = game.char_list[account][ game.char_list[account].job ][ day ].value;
+                                }
+                            }
 
                             if(game.char_list[account].job==="psychic")
                                 psychic_id = account;
@@ -2331,6 +2365,7 @@ function Vote(choice)
                             };
                         }
                     }
+
 
 
                     var _human = 0,_wolf = 0;
@@ -2434,7 +2469,7 @@ function Award(game,wolf)
                 }
                 else
                 {
-                    char[_a].huma_win+=1;
+                    char[_a].human_win+=1;
                     char[_a].item.money+=(10*Object.keys(game.char_list).length)/2;
                 }
             }
