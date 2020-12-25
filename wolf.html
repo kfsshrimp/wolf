@@ -747,7 +747,6 @@ function MenuClick(id,act)
                         }
 
                         if(game.char_create==System.member.account)
-                        if( parseInt(game.config.char_count)===Object.keys(game.char_list).length )
                         {
                             menu["start_button"] = {
                                 "type":"button",
@@ -806,58 +805,61 @@ function MenuClick(id,act)
                         div.appendChild( document.createElement("p") );
                     }
 
-                    var _div = document.createElement("div");
-                    _div.className = "info";
-                    _div.innerHTML = "購買道具，目前持有金額【"+System.char.item.money+"】";
-                    div.appendChild(_div);
-
-                
-                    item = game.item;
-
-                    var title = [
-                        {
-                            "title":"道具",
-                            "html":"name"
-                        },
-                        {
-                            "title":"價錢",
-                            "html":"money"
-                        },
-                        {
-                            "title":"購買",
-                            "html":"buy",
-                            "id":"id",
-                            "class":"btn",
-                            "event":{"click":function(){
-                                BuyItem(this.id);
-                            }}
-                        }
-                    ];
-                    var list = [];
-                    for(var key in item)
+                    if(game.end=="ready")
                     {
-                        var idx = list.length;
 
-                        list[idx] = item[key];
-                        list[idx].name = key;
-                        list[idx].id = key;
+                        var _div = document.createElement("div");
+                        _div.className = "info";
+                        _div.innerHTML = "購買道具，目前持有金額【"+System.char.item.money+"】";
+                        div.appendChild(_div);
 
-                        if(game.char_list[System.member.account])
+                    
+                        item = game.item;
+
+                        var title = [
+                            {
+                                "title":"道具",
+                                "html":"name"
+                            },
+                            {
+                                "title":"價錢",
+                                "html":"money"
+                            },
+                            {
+                                "title":"購買",
+                                "html":"buy",
+                                "id":"id",
+                                "class":"btn",
+                                "event":{"click":function(){
+                                    BuyItem(this.id);
+                                }}
+                            }
+                        ];
+                        var list = [];
+                        for(var key in item)
                         {
-                            if(game.char_list[System.member.account].item[key]!==undefined)
-                                list[idx].buy = "已購買";
+                            var idx = list.length;
+
+                            list[idx] = item[key];
+                            list[idx].name = key;
+                            list[idx].id = key;
+
+                            if(game.char_list[System.member.account])
+                            {
+                                if(game.char_list[System.member.account].item[key]!==undefined)
+                                    list[idx].buy = "已購買";
+                                else
+                                    list[idx].buy = "購買";
+                            }
                             else
-                                list[idx].buy = "購買";
+                            {
+                                delete title["2"];
+                            }
                         }
-                        else
-                        {
-                            delete title["2"];
-                        }
+
+                        ListMake(title,list,div,id);
+                        div.appendChild( document.createElement("p") );
                     }
-
-                    ListMake(title,list,div,id);
-                    div.appendChild( document.createElement("p") );
-
 
                     var title = [];
 
@@ -897,7 +899,7 @@ function MenuClick(id,act)
                         }}
                     },
                         {
-                            "title":"",
+                            "title":"踢除玩家",
                             "html":"quit",
                             "id":"id",
                             "class":"btn",
@@ -989,6 +991,7 @@ function MenuClick(id,act)
                         
                         if(account==game.char_create)
                         {
+                            list[ list_idx ].quit = "房主";
                             list[ list_idx ].ready_status = "房主";
                         }
                         else
@@ -1186,6 +1189,8 @@ function GameFunc(act,id = "")
 
             var char_list = [];
             var check_ready = true;
+            var use_item_list = {};
+            var use_item_continue_job = [];
             for(var account in game.char_list)
             {
                 var idx = char_list.length;
@@ -1194,6 +1199,98 @@ function GameFunc(act,id = "")
 
                 if(game.char_list[account].ready!="yes") 
                     check_ready = false;
+
+                
+                var item = game.char_list[account].item;
+
+                for(var item_name in item)
+                {
+                    if(item_name=="money") continue;
+
+                    if(item[item_name].money>item.money || game.config[item[item_name].job+"_count"]==0)
+                    {
+                        delete char_list[ idx ].item[item_name];
+                    }
+                    else
+                    {
+                        use_item_list[ item_name ] = use_item_list[ item_name ]||[];
+                        use_item_list[ item_name ].push(account);
+                    }
+                }
+            }
+            console.log(use_item_list);
+            
+            
+            for(var item_name in use_item_list)
+            {
+                var job = game.item[item_name].job;
+                
+
+                var lose_max = 0;
+                var _set_job = [];
+                if(use_item_list[item_name].length==1)
+                {
+                    _set_job = use_item_list[item_name];
+                }
+                else
+                {
+                    for(var account of use_item_list[item_name])
+                    {
+                        if(lose_max<=
+                        game.char_list[ account ].huma_lose - 
+                        (-1)*game.char_list[ account ].wolf_lose)
+                        {
+                            lose_max = 
+                            game.char_list[ account ].huma_lose - 
+                            (-1)*game.char_list[ account ].wolf_lose;
+                        }
+                    }
+                    for(var account of use_item_list[item_name])
+                    {
+                        if(lose_max == game.char_list[ account ].huma_lose - 
+                        (-1)*game.char_list[ account ].wolf_lose)
+                        {
+                            _set_job.push(account);
+                        }
+                    }
+                    console.log(_set_job);
+
+                    Shuffle(_set_job);
+                }
+
+                
+                
+
+                for(var _config_job_count=0;
+                    _config_job_count<game.config[job+"_count"];
+                    _config_job_count++)
+                {
+                    if(_set_job.length==0)
+                    {
+                        break;
+                    }
+                    game.config[job+"_count"]--;
+
+                    var account = _set_job.pop();
+                    game.char_list[ account ].job = job;
+                    game.char_list[ account ].item.money-=game.item[item_name].money;
+
+                    var array_idx = 0;
+                    for(var _a in char_list)
+                    {
+                        if(char_list[_a].id==account) char_list.splice(array_idx,1);
+                        array_idx++;
+                    }
+
+                    
+                }
+            }
+
+
+            if( parseInt(game.config.char_count)!==Object.keys(game.char_list).length )
+            {
+                alert("玩家人數不足");
+                return;
             }
 
             if(check_ready!=true)
@@ -1201,11 +1298,11 @@ function GameFunc(act,id = "")
                 alert("尚有玩家沒按下準備完成");
                 return;
             }
-
             
             for(var idx in game.config)
             {
                 if(idx=="char_count") continue;
+                if(use_item_continue_job.indexOf(idx.split("_")[0])!=-1) continue;
 
                 for(var i=0;i<game.config[idx];i++)
                 {
@@ -1230,10 +1327,16 @@ function GameFunc(act,id = "")
                 game.char_list[ _char.id ] = _char;
             }
 
+            delete game.config;
+
+            console.log(game.char_list);
+            console.log(game);
+
+
 
             game.end = "start";
             game.nowtime = "human";
-            DB.ref("/game/"+id).set( game );
+            DB.ref("/game/"+id).update( game );
 
             alert("遊戲開始");
             MenuClick("game_list","close");
