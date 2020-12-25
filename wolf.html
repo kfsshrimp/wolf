@@ -1,4 +1,9 @@
-<style>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/5.5.6/firebase.js"></script>
+<script src="script.js"></script>
+<script>
     /*
     結束後獎勵分配
     人狼頻道
@@ -6,355 +11,7 @@
     
 DB 資料庫排序
 DB 資料庫分頁
-
-    */
-body{
-    background:#555;
-}
-body.loading{
-    overflow:hidden;
-    cursor: wait;
-}
-input{
-    background: #ccc;
-    color:#000;
-}
-input[type=button]{
-    cursor: pointer;
-}
-input[type=button]:active{
-    background: #000;
-    color: #ccc;
-}
-
-input[type=text]:focus{
-    background: #fff;
-}
-input[type=password]:focus{
-    background: #fff;
-}
-
-input.number{
-    margin:0 1px 0 1px;
-    max-width:40px;
-    text-align: right;
-}
-input.battle{
-    float: left;
-}
-
-textarea{
-    background: #ccc;
-    color:#000;
-    width: 177px;
-    height: 60px;
-}
-textarea:focus{
-    background: #fff;
-}
-
-
-div#Mask{
-    background:#555;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    transition-duration: 0.5s;
-}
-
-div#Mask.off{
-    position: absolute;
-    opacity: 0;
-}
-
-
-#LoginMenu{
-    text-align: center;
-    margin-top: 10%;
-    color:#aaa;
-}
-#LoginMenu span{
-    margin-right: 4px;
-}
-#LoginMenu input[type=text],input[type=password]{
-    width: 100px;
-}
-#LoginMenu input[type=button]{
-    width:auto;
-}
-
-
-
-#Menu ul{
-    margin: 0px;
-    padding: 0px;
-}
-
-#Menu ul li{
-    border: 1px solid #000;
-    background: #ccc;
-    color:#000;
-    border-radius: 10px;
-    margin: 4px;
-    padding: 2px 8px 2px 8px;
-    list-style: none;
-    cursor: pointer;
-}
-
-#Menu ul li:hover{
-    background: #000;
-    color:#fff;
-}
-
-#Menu ul>div{
-    color:#000;
-    border-radius: 10px;
-    margin: 2px 10px 2px 10px;
-    background: #ccc;
-    height: 0px;
-    overflow: hidden;
-    transition-duration: 0.5s;
-}
-
-#Main {
-    padding: 10px;
-}
-
-#Main div.info{
-    border: 1px solid #000;
-    border-radius: 10px;
-    padding: 4px;
-    margin: 2px;
-}
-
-#Main div.info.btn{
-    cursor: pointer;
-}
-
-#Main div.info.btn:hover{
-    background: #000;
-    color:#fff;
-}
-
-
-#Main div.row{
-    margin: 10px;
-    clear: both; 
-}
-
-#Main div.row span{
-    float: left;
-    margin-right: 6px;
-}
-
-#Main input.bonus{
-    margin-left: 10px;
-    
-}
-
-#Main div.line{
-    float: left;
-    width: 100px;
-    height: 16px;
-    border-radius: 10px;
-    background: #fff;
-}
-
-#Main div.attack_line{
-    margin: 4px;
-    height: 16px;
-    padding: 0 0 0 20px;
-    font-size: x-small;
-    color: #fff;
-    width: 180px;
-    border-radius: 10px;
-}
-
-
-#CacheDiv{
-    display:none;
-}
-
-#ListTable{
-
-}
-
-#ListTable tr td{
-    border: 1px solid #000;
-    border-radius: 10px;
-    padding: 4px;
-}
-
-#ListTable tr td.btn{
-    cursor: pointer;
-}
-#ListTable tr td.btn:hover{
-    background: #000;
-    color:#fff;
-}
-
-
-
-#ListTable tr td span.red{
-    color:#f00;
-}
-
-
-#Time{
-    height: 20px;
-    border: 1px solid #000;
-    background: #ccc;
-    color:#000;
-    border-radius: 10px;
-    margin: 4px;
-    padding: 2px 8px 2px 8px;
-    cursor: pointer;
-}
-#Time:hover{
-    background: #000;
-    color:#fff;
-}
-
-
-.vote{
-    transition-duration: .3s;
-}
-
-.focus{
-    background: #ff0;
-    transition-duration: .3s;
-}
-
-
-
-</style>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="viewport" content="width=device-width">
-<script src="https://www.gstatic.com/firebasejs/5.5.6/firebase.js"></script>
-<script>
-
-var System = {
-    "version":2,
-    "config":null,
-    "member":{},
-    "time":null,
-    "focus_timer":null,
-    "content":"list",
-    "SerialNumber":null,
-    "char_default":{
-        "name":"",
-        "game_sn":"",
-        "wolf_win":0,
-        "human_win":0,
-        "wolf_lose":0,
-        "human_lose":0,
-        "item":{"money":0},
-        "game_day":"0",
-        "game_time":"",
-        "game_end":"",
-        "vote":{"0":{"value":"","time":""}},
-        "pass":{"0":{"value":"","time":""}},
-        "wolf":{"0":{"value":"","time":""}},
-        "divine":{"0":{"value":"","time":""}},
-        "psychic":{"0":{"value":"","time":""}},
-        "guard":{"0":{"value":"","time":""}},
-        "human":{"0":{"value":"","time":""}},
-        "ready":"no",
-        "dead":{"status":"live"}
-    },
-    "c_s_word":{
-        "name":"帳號名稱",
-        "wolf_win":"狼勝場數",
-        "human_win":"人勝場數",
-        "wolf_lose":"狼敗場數",
-        "human_lose":"人敗場數",
-        "item":"持有金錢",
-    },
-    "create_game_row":{
-        "name":{
-            "name":"遊戲名稱",
-            "type":"text",
-            "value":"遊戲名稱"
-        },
-        "game_password":{
-            "name":"進入密碼",
-            "type":"text",
-            "value":"進入密碼"
-        },
-        "game_memo":{
-            "name":"遊戲說明",
-            "type":"textarea",
-            "value":"遊戲說明"
-        },
-        "game_nickname":{
-            "name":"此局角色名稱",
-            "type":"text",
-            "value":"此局角色名稱"
-        },
-        "char_count":{
-            "name":"遊戲人數",
-            "type":"number",
-            "value":8
-        },
-        "wolf_count":{
-            "name":"人狼數量",
-            "type":"number",
-            "value":2
-        },
-        "divine_count":{
-            "name":"先知數量",
-            "type":"number",
-            "value":1
-        },
-        "guard_count":{
-            "name":"守衛數量",
-            "type":"number",
-            "value":1
-        },
-        "psychic_count":{
-            "name":"靈媒數量",
-            "type":"number",
-            "value":1
-        }
-    },
-    "job_word":{
-        "psychic":"靈媒",
-        "guard":"守衛",
-        "wolf":"人狼",
-        "divine":"先知",
-        "human":"村民"
-    }
-};
-
-
-window.onload = function()
-{
-    var div = document.createElement("div");
-    div.id = "Mask";
-    document.body.appendChild(div);
-    document.body.className = "loading";
-}
-
-var DB = firebase;DB.initializeApp({databaseURL: "https://kfswolf-default-rtdb.firebaseio.com"});
-
-
-DB = DB.database();
-DB.ref("/system/config").once( "value",_sys=>{ 
-    System.config = _sys.val();
-
-    document.title = "網頁狼人【版本:"+System.version+"】";
-
-    if( CheckVersion()===false )
-    {
-        alert("遊戲版本不符，請更新遊戲版本");
-        return;
-    }
-    
-    Main();
-
-});
-
-
+*/
 
 
 function Main()
@@ -670,6 +327,7 @@ function MenuClick(id,act)
     {
         if(System.content!=="list")
         {
+
             var _div = document.createElement("div");
             _div.className = "info btn";
             _div.innerHTML = "回到列表";
@@ -678,6 +336,16 @@ function MenuClick(id,act)
                 MenuClick(id,"open");
             });
             div.appendChild(_div);
+
+            var _div = document.createElement("div");
+            _div.className = "info btn";
+            _div.innerHTML = "前往對話區";
+            _div.addEventListener("click",function(){
+                location.href = "chat.html";
+                return;
+            });
+            div.appendChild(_div);
+
 
             var _div = document.createElement("div");
             _div.className = "info";
@@ -702,9 +370,11 @@ function MenuClick(id,act)
                         System.char.game_end = "";
 
                         DB.ref("/char/"+System.member.account).update( System.char );
-                        MenuClick(id,"open");
+                        MenuClick(id,"close");
                         return;
                     }
+                    sessionStorage.game = JSON.stringify(game);
+
 
                     if(System.char.game_sn!="")
                     {
@@ -1094,7 +764,7 @@ function MenuClick(id,act)
                         }
                     }
 
-                    if(System.char.game_sn==game.sn)
+                    if(System.char.game_sn==game.sn || game.end=="end")
                         delete menu.game_nickname;
                     
 
@@ -2185,7 +1855,7 @@ function Vote(choice)
         System.char.game_time.toString()!==game.nowtime.toString() || 
         System.char.game_end.toString()!==game.end.toString())
         {
-            location.reload();
+            MenuClick("game_list","close");
             return;
         }
 
@@ -2459,6 +2129,7 @@ function Award(game,wolf)
                 else
                 {
                     char[_a].wolf_lose+=1;
+                    char[_a].item.money+=10;
                 }
             }
             else
@@ -2466,6 +2137,7 @@ function Award(game,wolf)
                 if(win=="wolf")
                 {
                     char[_a].human_lose+=1;
+                    char[_a].item.money+=10;
                 }
                 else
                 {
@@ -2524,264 +2196,19 @@ function BuyItem(name)
 }
 
 
-
-
-function SortData(list,row,mode = 1)
+function EditAccount()
 {
-    var _list = [];
-    for(var idx in list)
-    {
-        var _list_idx = _list.length;
-        _list[ _list_idx ] = list[idx];
+    var a = document.querySelector("input#account");
+    var p = document.querySelector("input#password"); 
 
-        _list[ _list_idx ]["_sort"] = list[idx][row];
-    }
+    System.member.password = btoa( P(System.SerialNumber) );
 
+    a.value = System.member.account;
+    p.value = System.member.password;
+    a.disabled = "disabled";
+    p.disabled = "disabled";
 
-    if(mode==1)
-    {
-        _list.sort(function(a,b){
-            if(a._sort>b._sort) return -1;
-            return 1;
-        });
-    }
-    else
-    {
-        _list.sort(function(a,b){
-            if(a._sort>b._sort) return 1;
-            return -1;
-        });
-    }
-    
-
-    for(var idx in _list)
-    {
-        delete _list[idx]["_sort"];
-    }
-
-
-    return _list;
-}
-
-
-
-
-//menu=>obj,div=>div容器
-function ListMake(title,list,div,id)
-{
-    var table = document.createElement("table");
-    table.id = "ListTable"
-
-    var tr = document.createElement("tr");
-    
-
-    for(var row in title)
-    {
-        var td = document.createElement("td");
-
-        td.innerHTML = title[row].title;
-
-        td.setAttribute("id",title[row].id||"");
-        td.className = title[row].title_class||"";
-
-        
-        for(var e_type in title[row].title_event)
-        {
-            td.addEventListener(e_type,title[row].title_event[e_type]);
-        }
-
-        tr.appendChild(td);
-    }
-    table.appendChild(tr);
-
-    
-    for(var a in list)
-    {
-        var tr = document.createElement("tr");
-
-        for(var row in title)
-        {
-            var td = document.createElement("td");
-
-            td.innerHTML = list[a][ title[row].html ];
-
-            td.setAttribute("id",list[a][ title[row].id ]||"");
-            td.className = title[row].class||"";
-
-            td.className = list[a].class||td.className;
-
-            for(var e_type in title[row].event)
-            {
-                if(list[a].event!=="remove")
-                td.addEventListener(e_type,title[row].event[e_type]);
-            }
-
-            tr.appendChild(td);
-        }
-
-        table.appendChild(tr);
-    }
-
-    div.appendChild(table);
-
-
-    document.querySelector("div#"+id).innerHTML = "";
-    document.querySelector("div#"+id).appendChild(div);
-
-    setTimeout(function(){
-        document.querySelector("div#"+id).style.height = document.querySelector("div#"+id+" div#Main").clientHeight + "px";
-    },0);
-
-}
-
-
-//menu=>obj,div=>div容器
-function RowMake(menu,div,id)
-{
-    for(var i in menu)
-    {
-        var input = document.createElement("input");
-        if(menu[i].type==="textarea")
-        {
-            input = document.createElement("textarea");
-            input.defaultValue = menu[i].value;
-        }
-
-
-        var span = document.createElement("span");
-
-        input.id = i;
-
-        for(var attr in menu[i])
-        {
-            input.setAttribute(attr,menu[i][attr]);
-        } 
-        
-        span.innerHTML = menu[i].span||"";
-
-        if(menu[i].event!==undefined)
-        {
-            for(var _on in menu[i].event)
-                input.addEventListener(_on,menu[i].event[_on]);
-        }
-
-        var row_div = document.createElement("div");
-        row_div.className = "row";
-
-        row_div.appendChild(span);
-        row_div.appendChild(input);
-
-
-        div.appendChild(row_div);
-    }
-    
-    document.querySelector("div#"+id).innerHTML = "";
-    document.querySelector("div#"+id).appendChild(div);
-
-    setTimeout(function(){
-        document.querySelector("div#"+id).style.height = document.querySelector("div#"+id+" div#Main").clientHeight + "px";
-    },0);
-}
-
-
-
-
-function RegisterMemberChar()
-{
-
-    var new_member = {};
-    new_member.account = System.SerialNumber;
-    new_member.password = btoa( P(System.SerialNumber) );
-    new_member.time_register = firebase.database.ServerValue.TIMESTAMP;
-    new_member.time_last = firebase.database.ServerValue.TIMESTAMP;
-
-    System.member = new_member;
-
-    var _localStorage = {"wolf":System.member};
-
-    localStorage.kfs = JSON.stringify(_localStorage);
-
-    DB.ref("/member/"+new_member.account).set( new_member );
-
-
-    System.char_default.time_last = firebase.database.ServerValue.TIMESTAMP;
-    DB.ref("/char/"+System.member.account).set( System.char_default );
-    System.char = System.char_default;
-
-}
-
-
-
-
-function EditChar()
-{
-    if(System.char.name!=="") return;
-
-    DB.ref("/char/").once( "value",function(_r){
-        _r = _r.val();
-
-        if(System.char.name==="")
-        {
-            for(var idx in _r)
-            {
-                if(_r[idx].name===document.querySelector("#name").value || 
-                document.querySelector("#name").value==="")
-                {
-                    alert("角色名稱已有人使用及不可空白");
-                    return;
-                }
-            }
-        }
-
-        System.char = System.char_bonus_set;
-
-        var old_name = System.char.name;
-
-        System.char.name = document.querySelector("#name").value;
-
-        DB.ref("/char/"+System.member.account).update( System.char );
-
-        
-        if(old_name!==document.querySelector("#name").value)
-        {
-            alert("命名完成");
-            location.reload();
-            return;
-        }
-        MenuClick("char_info","open");
-    });
-}
-
-
-
-function DelAccount()
-{
-    if( confirm("確定要清除帳號資料嗎?")===false )
-    {
-        ServerTime();
-        return;
-    }
-
-    if( System.member.account!==prompt("請輸入帳號序號進行程序") )
-    {
-        ServerTime();
-        return;
-    }
-
-    if( confirm("注意!重置程序無法恢復資料,確定要繼續嗎?")===false )
-    {
-        ServerTime();
-        return;
-    }
-
-    localStorage.kfs = "{}";
-
-
-    //DB.ref("/char/"+System.member.account).remove();
-
-    alert("清除完成");
-    location.reload();
-    return;
+    DB.ref("/member/"+System.member.account).update( System.member );
 }
 
 
@@ -2829,130 +2256,99 @@ function OldAccount()
     }
 }
 
-function EditAccount()
+
+function DelAccount()
 {
-    var a = document.querySelector("input#account");
-    var p = document.querySelector("input#password"); 
+    if( confirm("確定要清除帳號資料嗎?")===false )
+    {
+        return;
+    }
 
-    System.member.password = btoa( P(System.SerialNumber) );
+    if( System.member.account!==prompt("請輸入帳號序號進行程序") )
+    {
+        return;
+    }
 
-    a.value = System.member.account;
-    p.value = System.member.password;
-    a.disabled = "disabled";
-    p.disabled = "disabled";
+    if( confirm("注意!重置程序無法恢復資料,確定要繼續嗎?")===false )
+    {
+        return;
+    }
 
-    DB.ref("/member/"+System.member.account).update( System.member );
+    localStorage.kfs = "{}";
+
+
+    //DB.ref("/char/"+System.member.account).remove();
+
+    alert("清除完成");
+    location.reload();
+    return;
 }
 
 
-
-function ServerTime()
+function EditChar()
 {
-    firebase.database().ref('/').update({"ServerTime":firebase.database.ServerValue.TIMESTAMP})
-    .then(function (data) {
-      firebase.database().ref('/')
-        .once('value')
-        .then(function (data) {
-          var t = data.val();
-          t = t.ServerTime;
+    if(System.char.name!=="") return;
 
-          System.time = t;
-          clearInterval(System._timer);
+    DB.ref("/char/").once( "value",function(_r){
+        _r = _r.val();
 
-          var time_word = document.createElement("div");
-          System._timer = setInterval(function(){
-            System.time+=100;
-            System.SerialNumber = System.time.toString().substr(1);
-
-            if(document.querySelector("#Time"))
+        if(System.char.name==="")
+        {
+            for(var idx in _r)
             {
-                document.querySelector("#Time").innerHTML = 
-                "【"+DateFormat(new Date(System.time))+"】";
+                if(_r[idx].name===document.querySelector("#name").value || 
+                document.querySelector("#name").value==="")
+                {
+                    alert("角色名稱已有人使用及不可空白");
+                    return;
+                }
             }
-          },100);
-        
-          setTimeout(function(){
-            document.querySelector("div#Mask").className = "off";
-            
-            setTimeout(function(){
-                document.querySelector("div#Mask").style.display = "none";
-                document.body.className = "";
-            },500);
-            
-          },100);
-          
+        }
 
-          console.log('server time: ', t);
-        }, function serverTimeErr(err) {
-          console.log('coulnd nt reach to the server time !');
-        });
-    }, function (err) {
-      console.log ('set time error:', err)
+        System.char = System.char_bonus_set;
+
+        var old_name = System.char.name;
+
+        System.char.name = document.querySelector("#name").value;
+
+        DB.ref("/char/"+System.member.account).update( System.char );
+
+        
+        if(old_name!==document.querySelector("#name").value)
+        {
+            alert("命名完成");
+            location.reload();
+            return;
+        }
+        MenuClick("char_info","open");
     });
 }
 
 
-function DateFormat(timestamp,time = false)
+
+
+function RegisterMemberChar()
 {
-    var tmp = timestamp.toString().split(" ");
-    var hms = tmp[4];
 
-    tmp = tmp[3] + "/" + 
-        parseInt(new Date(timestamp).getMonth()+1) + "/" + 
-        new Date(timestamp).getDate();
+    var new_member = {};
+    new_member.account = System.SerialNumber;
+    new_member.password = btoa( P(System.SerialNumber) );
+    new_member.time_register = firebase.database.ServerValue.TIMESTAMP;
+    new_member.time_last = firebase.database.ServerValue.TIMESTAMP;
 
-    if(time===true) tmp = "";
-    if(time===false) tmp += " ";
-    if(time==="<BR>") tmp += "<BR>"
-    
+    System.member = new_member;
 
-    tmp += hms.split(":")[0] + ":" 
-        + hms.split(":")[1] + ":" 
-        + hms.split(":")[2];
+    var _localStorage = {"wolf":System.member};
 
-    return tmp;
-}
+    localStorage.kfs = JSON.stringify(_localStorage);
+
+    DB.ref("/member/"+new_member.account).set( new_member );
 
 
-function Shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
+    System.char_default.time_last = firebase.database.ServerValue.TIMESTAMP;
+    DB.ref("/char/"+System.member.account).set( System.char_default );
+    System.char = System.char_default;
 
-function P(str)
-{
-    var [...ary] = str;
-    Shuffle(ary);
-    return ary.join("");
-}
-
-function Focus(_class)
-{
-    clearInterval(System.focus_timer);
-    System.focus_timer = setInterval(function(){
-        
-        document.querySelectorAll(_class).forEach(function(obj){
-            obj.classList.toggle("focus");
-        });
-
-
-    },300);
-}
-
-
-function CheckMobile()
-{//true手機行動裝置 false非手機
-    return (navigator.userAgent.indexOf("Mobile")!==-1)?true:false;
-}
-function CheckVersion()
-{
-    if(System.config.version!=System.version)
-    {
-        return false;
-    }
-    return true;
 }
 
 

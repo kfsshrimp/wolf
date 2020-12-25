@@ -1,0 +1,266 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/5.5.6/firebase.js"></script>
+<script src="script.js"></script>
+
+<script>
+
+function Main()
+{
+    localStorage.kfs = localStorage.kfs||'{}';
+    var _tmp = JSON.parse(localStorage.kfs);
+    System.member = _tmp.wolf||{};
+
+    ServerTime();
+
+    if(System.member.account===undefined)
+    {
+        var _t = setInterval( function(){
+        //ServerTime function set value
+        if(System.SerialNumber!==undefined && System.SerialNumber!==null)
+            {
+                clearInterval(_t);
+                location.href = "wolf.html"
+            }
+        },10);
+    }
+
+    System.game = JSON.parse(sessionStorage.game||'{}');
+    
+    MenuLi();
+
+    MenuClick("chat","close");
+}
+
+function MenuLi()
+{
+    var time = document.createElement("div");
+    time.id = "Time";
+    time.addEventListener("click",function(){
+        document.querySelectorAll("#Menu ul>div").forEach(function(div,idx){
+            div.style.height = "0px";
+        });
+    });
+
+
+    var div = document.createElement("div");
+    div.id = "Menu";
+    var ul = document.createElement("ul");
+    var list = {
+        "index":{"name":"回到操作介面"},
+        "chat":{"name":"一般對話室"}
+        
+    }
+
+    if(System.game.char_list[ System.member.account ].job=="wolf")
+        list["chat_wolf"] = {"name":"人狼對話室"};
+
+
+    for(var i in list)
+    {
+        var li = document.createElement("li");
+        li.id = i;
+        li.innerHTML = list[i].name;
+
+        ul.appendChild(li);
+
+        var li_div = document.createElement("div");
+        li_div.id = i;    
+        ul.appendChild(li_div);
+    }
+
+    div.appendChild(ul);
+
+    document.body.appendChild(time);
+    document.body.appendChild(div);
+
+    document.querySelectorAll("#Menu ul li").forEach(function(li){
+
+        li.addEventListener("click",function(){MenuClick(li.id,"close");} );
+        
+    });
+
+}
+
+
+function MenuClick(id,act)
+{
+    if(act=="close")
+    {
+        document.querySelectorAll("#Menu ul>div").forEach(function(div,idx){
+            div.style.height = "0px";
+        });
+
+        setTimeout(function(){
+            MenuClick(id,"open");
+        },0);
+        return;
+    }
+    
+    var div = document.createElement("div");
+    div.id = "Main";
+
+    if(id=="index")
+    {
+        location.href = "wolf.html";
+        return;
+    }
+
+    if(id=="chat")
+    {
+        CreateChat(div,id);
+    }
+
+    if(id=="chat_wolf")
+    {
+        CreateChat(div,id);
+    }
+
+    document.querySelectorAll("#Menu ul>div").forEach(function(div,idx){
+        div.innerHTML = "";
+    });
+    document.querySelector("div#"+id).appendChild(div);
+    setTimeout(function(){
+        document.querySelector("div#"+id).style.height = "80%";
+        //document.querySelector("div#"+id).style.height = document.querySelector("div#"+id+" div#Main").clientHeight + "px";
+    },0);
+}
+
+
+function CreateChat(div,id)
+{
+    var _div = document.createElement("div");
+    _div.className = "chat";
+    
+    var ul = document.createElement("ul");
+    _div.appendChild(ul);
+
+
+    var btn = document.createElement("div");
+    btn.className = "info btn";
+    btn.innerHTML = "發言";
+    btn.addEventListener("click",function(){
+        var text = document.querySelector("#text").value;
+
+        var self_char = System.game.char_list[ System.member.account ];
+
+
+        var new_text = {};
+        new_text.char_create = System.member.account;
+        new_text.time_create = firebase.database.ServerValue.TIMESTAMP;
+        new_text.nickname = self_char.nickname;
+        new_text.day = System.game.nowday;
+        new_text.type = id;
+        new_text.text = text;
+
+        var text_idx = Object.keys(System.game.chat||{}).length;
+        
+
+        DB.ref("/game/"+System.game.sn+"/chat/"+text_idx).set( new_text );
+
+        MenuClick(id,"close");
+        return;
+    });
+    div.appendChild(btn);
+
+    var textarea = document.createElement("textarea");
+    textarea.id = "text";
+    div.appendChild(textarea);
+    
+     
+
+    if(System.game.sn===undefined)
+    {
+        location.href = "wolf.html";
+        return;
+    }
+    
+    DB.ref("/game/"+System.game.sn).once( "value",function(game){
+        game = game.val();
+
+        if(game===null)
+        {
+            location.href = "wolf.html";
+            return;
+        }
+
+        System.game = game;
+        sessionStorage.game = JSON.stringify(game);
+
+        var list = [];
+        for(var idx in game.chat)
+        {
+            if(game.chat[idx].type!=id) continue;
+            var list_idx = list.length;
+            list[ list_idx ] = game.chat[idx];
+        }
+
+        list = SortData(list,"time_create",1);
+
+
+        for(var idx in list)
+        {
+            var li = document.createElement("li");
+
+            var textarea = document.createElement("textarea");
+            textarea.disabled = "disabled";
+            textarea.value = list[idx].text;
+
+            var table = document.createElement("table");
+            var tr = document.createElement("tr");
+            var td = document.createElement("td");
+
+
+            table.appendChild(tr);
+            tr.appendChild(td);
+            td.innerHTML = "【"+list[idx].nickname+"】";
+
+            var td = document.createElement("td");
+            td.appendChild(textarea);
+            tr.appendChild(td);
+
+            var span = document.createElement("span");
+            span.innerHTML = DateFormat(new Date(list[idx].time_create),false);
+            span.className = "time";
+            td.appendChild(span);
+            tr.appendChild(td);
+            
+
+            li.appendChild(table);
+            ul.appendChild(li);
+        }
+
+        
+        
+        div.appendChild(_div);
+
+    });    
+}
+
+
+
+
+
+
+
+
+/*
+DB.ref("/GAMEROOM/"+_game_room.ID).set(_game_room);
+DB.ref("/PLAYER/"+ GLOBAL.session_user.nick_name ).update( _player );
+DB.ref("/system/config").once( "value",_sys=>{System.config = _sys.val();});
+*/
+
+/*
+
+取得玩家IP
+https://ipinfo.io/
+https://ipinfo.io/?callback=callback
+GOOGLE get ip address api
+
+*/
+
+
+
+
+</script>
