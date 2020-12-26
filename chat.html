@@ -28,6 +28,7 @@ function Main()
     }
 
     System.game = JSON.parse(sessionStorage.game||'{}');
+    System.select_day = System.game.nowday;
     
     MenuLi();
 
@@ -131,19 +132,30 @@ function MenuClick(id,act)
 }
 
 
-function CreateChat(div,id)
+function CreateChat(div,id,day = System.select_day)
 {
+    console.log(arguments);
+    console.log(day);
+
     var _div = document.createElement("div");
     _div.className = "chat";
     
     var ul = document.createElement("ul");
     _div.appendChild(ul);
 
-    var btn = document.createElement("div");
-    btn.className = "info btn";
-    btn.innerHTML = "發言9";
-    btn.addEventListener("click",function(){
+    var send_msg_div = document.createElement("div");
+    send_msg_div.className = "info";
+    var btn_span = document.createElement("span");
+    btn_span.className = "btn";
+    btn_span.innerHTML = "發言";
+    send_msg_div.appendChild(btn_span);
+
+    btn_span.addEventListener("click",function(){
         var text = document.querySelector("#text").value;
+
+        var chat_name = {"chat":"一般對話","chat_wolf":"人狼對話"};
+        if(confirm("將在【"+chat_name[id]+"】送出訊息，確定要繼續嗎?")==false) return;
+
         if(text=="") return;
 
         var self_char = System.game.char_list[ System.member.account ];
@@ -167,7 +179,33 @@ function CreateChat(div,id)
         MenuClick(id,"close");
         return;
     });
-    div.appendChild(btn);
+    
+    var day_select = document.createElement("select");
+
+    for(var i=0;i<=System.game.nowday;i++)
+    {
+        var opt = document.createElement("option");
+        opt.text = "第"+i+"天";
+        opt.value = i;
+        if(i==System.select_day) opt.selected = "selected";
+        day_select.appendChild(opt);
+    }
+    var day_span = document.createElement("span");
+    day_span.innerHTML = "目前顯示第"+day+"天訊息，選擇其他天";
+
+    day_select.addEventListener("change",function(){
+        if(this.value!="")
+        {
+            System.select_day = this.value;
+            MenuClick(id,"close");
+        }
+    });
+
+    send_msg_div.appendChild(day_span);
+    send_msg_div.appendChild(day_select);
+    div.appendChild(send_msg_div);
+
+
 
     var textarea = document.createElement("textarea");
     textarea.id = "text";
@@ -197,12 +235,13 @@ function CreateChat(div,id)
         for(var idx in game.chat)
         {
             if(game.chat[idx].type!=id) continue;
+            if(game.chat[idx].day!=day) continue;
+
             var list_idx = list.length;
             list[ list_idx ] = game.chat[idx];
         }
 
         list = SortData(list,"time_create",1);
-
 
         for(var idx in list)
         {
