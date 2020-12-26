@@ -611,6 +611,13 @@ function MenuClick(id,act)
                         title.splice(1,1);
                     }
 
+                    title[ Object.keys(title).length ] = 
+                    {
+                        "title":"玩家狀態",
+                        "html":"action_end"
+                    };
+
+
 
                     if(game.char_list[ System.member.account ]!==undefined)
                     if( game.char_list[ System.member.account ].job==="divine" ||
@@ -648,6 +655,18 @@ function MenuClick(id,act)
 
                         list[ list_idx ] = game.char_list[account];
                         list[ list_idx ].id = account;
+
+
+                        if(game.nowtime=="human")
+                        {
+                            list[ list_idx ].action_end = (game.char_list[account].vote[ game.nowday ].value!="" || 
+                            game.char_list[account].pass[ game.nowday ].value!="")?"已行動":"<span class=red>未行動</span>";
+                        }
+                        else
+                        {
+                            list[ list_idx ].action_end = (game.char_list[account].pass[ game.nowday ].value!="")?"已行動":"<span class=red>未行動</span>";
+                        }
+                        
 
 
                         if(game.char_list[account].dead.status==="dead")
@@ -735,7 +754,7 @@ function MenuClick(id,act)
                         if(account.toString()===System.member.account || 
                         game.char_list[account].dead.status==="dead")
                         {
-                            list[ list_idx ].class = "btn";
+                            //list[ list_idx ].class = "btn";
                             list[ list_idx ].event = "remove";
                         }
 

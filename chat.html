@@ -191,7 +191,7 @@ function CreateChat(div,id,day = System.select_day)
         day_select.appendChild(opt);
     }
     var day_span = document.createElement("span");
-    day_span.innerHTML = "目前顯示第"+day+"天訊息，選擇其他天";
+    day_span.innerHTML = "<BR><BR>目前顯示第"+day+"天訊息<BR>選擇其他天";
 
     day_select.addEventListener("change",function(){
         if(this.value!="")
