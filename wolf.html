@@ -5,12 +5,17 @@
 <script src="script.js"></script>
 <script>
     /*
-    結束後獎勵分配
-    人狼頻道
-    開場買道具
+    結束後獎勵分配 OK
+
+    使用道具扣錢 OK
+    其他帳號明細查尋(看戰績)
     
 DB 資料庫排序
 DB 資料庫分頁
+
+
+對話訊息篩選day
+
 */
 
 
@@ -757,11 +762,20 @@ function MenuClick(id,act)
                             "class":System.create_game_row[i].type,
                             "value":game.config[i]||game[i],
                         }
-                        if(i=="game_password" || i=="game_nickname")
+                        if(i=="game_nickname")
                         {
                             menu[i].value = "";
                             delete menu[i].disabled;
                         }
+
+                        if(i=="game_password" && 
+                        game.char_create!=System.member.account && 
+                        game.sn!=System.char.game_sn)
+                        {
+                            menu[i].value = "";
+                            delete menu[i].disabled;
+                        }
+
                     }
 
                     if(System.char.game_sn==game.sn || game.end=="end")
@@ -850,7 +864,6 @@ function GameFunc(act,id = "")
                 return;
             }
 
-
             if(System.member.account!=game.char_create)
             {
                 if(game.char_list[ System.member.account ].ready!="yes")
@@ -867,7 +880,6 @@ function GameFunc(act,id = "")
             {
                 game.char_list[ System.member.account ].ready = "yes";
             }
-
 
             var char_list = [];
             var check_ready = true;
@@ -900,8 +912,20 @@ function GameFunc(act,id = "")
                     }
                 }
             }
-            console.log(use_item_list);
             
+            if( parseInt(game.config.char_count)!==Object.keys(game.char_list).length )
+            {
+                alert("玩家人數不足");
+                MenuClick("game_list","close");
+                return;
+            }
+
+            if(check_ready!=true)
+            {
+                alert("尚有玩家沒按下準備完成");
+                MenuClick("game_list","close");
+                return;
+            }
 
             for(var item_name in use_item_list)
             {
@@ -940,8 +964,6 @@ function GameFunc(act,id = "")
                     Shuffle(_set_job);
                 }
 
-                
-                
 
                 for(var _config_job_count=0;
                     _config_job_count<game.config[job+"_count"];
@@ -957,31 +979,21 @@ function GameFunc(act,id = "")
                     game.char_list[ account ].job = job;
                     game.char_list[ account ].item.money-=game.item[item_name].money;
 
+                    DB.ref("/char/"+account).update( 
+                        {"item":
+                            {"money":game.char_list[ account ].item.money}
+                        }
+                    );
+
                     var array_idx = 0;
                     for(var _a in char_list)
                     {
                         if(char_list[_a].id==account) char_list.splice(array_idx,1);
                         array_idx++;
                     }
-
-                    
                 }
             }
 
-
-            if( parseInt(game.config.char_count)!==Object.keys(game.char_list).length )
-            {
-                alert("玩家人數不足");
-                MenuClick("game_list","close");
-                return;
-            }
-
-            if(check_ready!=true)
-            {
-                alert("尚有玩家沒按下準備完成");
-                MenuClick("game_list","close");
-                return;
-            }
             
             for(var idx in game.config)
             {
@@ -1015,8 +1027,6 @@ function GameFunc(act,id = "")
 
             console.log(game.char_list);
             console.log(game);
-
-
 
             game.end = "start";
             game.nowtime = "human";

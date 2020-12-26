@@ -201,7 +201,9 @@ function RowMake(menu,div,id)
         div.appendChild(row_div);
     }
     
-    document.querySelector("div#"+id).innerHTML = "";
+    document.querySelectorAll("#Menu ul>div").forEach(function(div,idx){
+        div.innerHTML = "";
+    });
     document.querySelector("div#"+id).appendChild(div);
 
     setTimeout(function(){
@@ -269,7 +271,9 @@ function ListMake(title,list,div,id)
     div.appendChild(table);
 
 
-    document.querySelector("div#"+id).innerHTML = "";
+    document.querySelectorAll("#Menu ul>div").forEach(function(div,idx){
+        div.innerHTML = "";
+    });
     document.querySelector("div#"+id).appendChild(div);
 
     setTimeout(function(){
