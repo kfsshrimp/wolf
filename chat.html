@@ -151,7 +151,7 @@ function CreateChat(div,id)
         var new_text = {};
         new_text.char_create = System.member.account;
         new_text.time_create = firebase.database.ServerValue.TIMESTAMP;
-        new_text.account = self_char.account;
+        new_text.account = System.member.account;
         new_text.name = self_char.name;
         new_text.nickname = self_char.nickname;
         new_text.day = System.game.nowday;
@@ -161,6 +161,8 @@ function CreateChat(div,id)
         var text_idx = Object.keys(System.game.chat||{}).length;
         
 
+        console.log(new_text);
+        return;
         DB.ref("/game/"+System.game.sn+"/chat/"+text_idx).set( new_text );
 
         MenuClick(id,"close");

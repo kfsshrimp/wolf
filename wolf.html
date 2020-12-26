@@ -485,7 +485,7 @@ function MenuClick(id,act)
 
                         var _div = document.createElement("div");
                         _div.className = "info";
-                        _div.innerHTML = "購買道具，目前持有金額【"+System.char.item.money+"】";
+                        _div.innerHTML = "購買道具，目前持有金錢【"+System.char.item.money+"】";
                         div.appendChild(_div);
 
                     
@@ -959,10 +959,11 @@ function GameFunc(act,id = "")
                             _set_job.push(account);
                         }
                     }
-                    console.log(_set_job);
 
                     Shuffle(_set_job);
                 }
+
+                console.log( JSON.parse(JSON.stringify(_set_job)) );
 
 
                 for(var _config_job_count=0;
@@ -1022,7 +1023,6 @@ function GameFunc(act,id = "")
 
                 game.char_list[ _char.id ] = _char;
             }
-
             delete game.config;
 
             console.log(game.char_list);
@@ -1092,6 +1092,12 @@ function GameFunc(act,id = "")
                 return;
             }
         }
+
+        new_game.config.human_count = new_game.config.char_count - parseInt( 
+                parseInt(new_game.config.wolf_count) + 
+                parseInt(new_game.config.divine_count) + 
+                parseInt(new_game.config.guard_count) +
+                parseInt(new_game.config.psychic_count));
 
 
         new_game.char_list = {};
@@ -1913,11 +1919,11 @@ function Vote(choice)
                     max[ vote[key] ] = max[ vote[key] ]+1||1;
                 }
 
-                console.log(max);
                 var _vote_key = [];
                 var _vote_value = [];
                 for(var key in max)
                 {
+                    if(key=="pass") continue;
                     _vote_value.push( max[key] );
                 }
 
@@ -1931,20 +1937,16 @@ function Vote(choice)
 
                 if(game.nowday.toString()==="0")
                 {
-                    console.log(_vote_key);
                     var key;
+                    if(_vote_key.length==0)
+                    {
+                        _vote_key = ["human","wolf"];
+                    }
                     if(_vote_key.length>1)
                     {
                         Shuffle(_vote_key);
                     }
                     key = _vote_key.pop();
-
-                    if(key==="pass")
-                    {
-                        _vote_key = ["human","wolf"];
-                        Shuffle(_vote_key);
-                        key = _vote_key.pop();
-                    }
 
                     game.nowday = (game.nowday-(-1)).toString();
                     game.nowtime = key;
@@ -1967,6 +1969,13 @@ function Vote(choice)
                 {
                     if(game.nowtime=="human")//白天吊人
                     {
+                        if(_vote_key.length==0)
+                        {
+                            
+                        }
+                        console.log(_vote_key);
+                        return;
+
                         if(_vote_key.length<=2)
                         for(var key in _vote_key)
                         {
