@@ -144,6 +144,7 @@ function CreateChat(div,id)
     btn.innerHTML = "發言";
     btn.addEventListener("click",function(){
         var text = document.querySelector("#text").value;
+        if(text=="") return;
 
         var self_char = System.game.char_list[ System.member.account ];
 
@@ -161,8 +162,6 @@ function CreateChat(div,id)
         var text_idx = Object.keys(System.game.chat||{}).length;
         
 
-        console.log(new_text);
-        return;
         DB.ref("/game/"+System.game.sn+"/chat/"+text_idx).set( new_text );
 
         MenuClick(id,"close");
