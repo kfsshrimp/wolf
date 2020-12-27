@@ -1093,7 +1093,7 @@ function GameFunc(act,id = "")
 
             if(game===null)
             {
-                System._sessionStorage.menuclick.data_id[id] = "list";
+                System._sessionStorage.menuclick.data_id.game_list = "list";
                 sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                 MenuClick("game_list","open");
                 return;
@@ -1368,12 +1368,12 @@ function GameFunc(act,id = "")
 
     if(act=="quit")
     {
-        DB.ref("/game/"+System._sessionStorage.menuclick.data_id[id]).once( "value",function(game){
+        DB.ref("/game/"+System._sessionStorage.menuclick.data_id.game_list).once( "value",function(game){
             game = game.val();
 
             if(game===null)
             {
-                System._sessionStorage.menuclick.data_id[id] = "list";
+                System._sessionStorage.menuclick.data_id.game_list = "list";
                 sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                 MenuClick("game_list","open");
                 return;
@@ -1424,12 +1424,13 @@ function GameFunc(act,id = "")
 
     if(act=="join")
     {
-        DB.ref("/game/"+System._sessionStorage.menuclick.data_id[id]).once( "value",function(game){
+
+        DB.ref("/game/"+System._sessionStorage.menuclick.data_id.game_list).once( "value",function(game){
             game = game.val();
 
             if(game===null)
             {
-                System._sessionStorage.menuclick.data_id[id] = "list";
+                System._sessionStorage.menuclick.data_id.game_list = "list";
                 sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                 MenuClick("game_list","open");
                 return;
@@ -1448,12 +1449,14 @@ function GameFunc(act,id = "")
             if(game_nickname==="")
             {
                 alert("此局角色名稱不可空白");
+                document.querySelector("#game_nickname").focus();
                 return;
             }
 
             if(game_password!=game.game_password)
             {
                 alert("密碼錯誤,無法進入此遊戲");
+                document.querySelector("#game_password").focus();
                 return;
             }
             for(var key in game.char_list)
@@ -1461,6 +1464,7 @@ function GameFunc(act,id = "")
                 if(game_nickname===game.char_list[key].nickname)
                 {
                     alert("此局名稱已被使用");
+                    document.querySelector("#game_nickname").focus();
                     return;
                 }
                 if(key===System.member.account)
@@ -1483,11 +1487,6 @@ function GameFunc(act,id = "")
             DB.ref("/game/"+game.sn).update( game );
 
 
-            if( parseInt(game.config.char_count)===Object.keys(game.char_list).length )
-            {
-                //GameFunc("start",game.sn);
-                //return;
-            }
 
             alert("加入遊戲成功");
             MenuClick("game_list","close");
