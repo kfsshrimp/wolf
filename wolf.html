@@ -749,6 +749,7 @@ function MenuClick(id,act)
                         title.splice(1,1);
                     }
 
+                    if(game.end=="start")
                     title[ Object.keys(title).length ] = 
                     {
                         "title":"玩家狀態",
@@ -1053,8 +1054,12 @@ function MenuClick(id,act)
                     "end":"已結束",
                 }
 
+                var game_win_human = 0;
+                var game_win_wolf = 0;
                 for(var key in game)
                 {
+                    if(game[key].win=="human") game_win_human++;
+                    if(game[key].win=="wolf") game_win_wolf++;
 
                     if(System._sessionStorage.menuclick.search.keyword!="" && System._sessionStorage.menuclick.search.keyword!=undefined)
                     {
@@ -1074,6 +1079,12 @@ function MenuClick(id,act)
                 }
 
                 list = SortData(list,"time_last",1);
+
+
+                var _div = document.createElement("div");
+                _div.className = "info";
+                _div.innerHTML = "人類總勝場:"+game_win_human+"<BR>狼人總勝場:"+game_win_wolf;
+                div.appendChild(_div);
 
 
                 ListMake(title,list,div,id);

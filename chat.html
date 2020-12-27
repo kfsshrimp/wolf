@@ -55,9 +55,11 @@ function MenuLi()
         
     }
 
+    if(System.game.end=="end")
+        list["chat_wolf"] = {"name":"人狼對話室"};
+    
     if(System.game.char_list[ System.member.account ]!==undefined)
-    if(System.game.char_list[ System.member.account ].job=="wolf" ||
-    System.game.end=="end")
+    if(System.game.char_list[ System.member.account ].job=="wolf")
         list["chat_wolf"] = {"name":"人狼對話室"};
 
 
