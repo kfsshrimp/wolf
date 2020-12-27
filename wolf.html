@@ -8,9 +8,11 @@
     結束後獎勵分配 OK
 
     使用道具扣錢 OK
+    對話訊息篩選day OK
+
     其他帳號明細查尋(看戰績)
 
-對話訊息篩選day
+
 
 DB 資料庫排序
 DB 資料庫分頁
@@ -18,11 +20,14 @@ DB 資料庫分頁
 */
 
 
+
 function Main()
 {
     localStorage.kfs = localStorage.kfs||'{}';
     var _tmp = JSON.parse(localStorage.kfs);
     System.member = _tmp.wolf||{};
+
+    System._sessionStorage = JSON.parse(sessionStorage.kfs||'{}');
 
     ServerTime();
 
@@ -69,15 +74,20 @@ function Main()
 
                     if(System.char.game_sn!=="")
                     {
-                        System.content = System.char.game_sn;
+                        System._sessionStorage.menuclick.data_id.game_list = System.char.game_sn;
+                        sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                         MenuClick("game_list","close");
                     }
+
+                    if(System._sessionStorage.menuclick!==undefined)
+                    {
+                        MenuClick(System._sessionStorage.menuclick.menu,"close");
+                    }
+
                 });
             }
         );
     }
-
-    
 }
 
 function MenuLi()
@@ -85,6 +95,10 @@ function MenuLi()
     var time = document.createElement("div");
     time.id = "Time";
     time.addEventListener("click",function(){
+
+        delete System._sessionStorage.menuclick;
+        sessionStorage.kfs = JSON.stringify(System._sessionStorage);
+        
         document.querySelectorAll("#Menu ul>div").forEach(function(div,idx){
             div.style.height = "0px";
         });
@@ -134,11 +148,28 @@ function MenuLi()
         
     });
 
+
+
+
 }
+//System._sessionStorage.menuclick.menu.id
 
 
 function MenuClick(id,act)
 {
+    /*System._sessionStorage.menuclick = {
+        "menu":{"menu":id,"data":System._sessionStorage.menuclick.menu.data||"list"},
+        "search":System._sessionStorage.menuclick.search||{}
+    };*/
+    System._sessionStorage.menuclick = System._sessionStorage.menuclick||{};
+    System._sessionStorage.menuclick.menu = id;
+    System._sessionStorage.menuclick.data_id = System._sessionStorage.menuclick.data_id||{};
+    System._sessionStorage.menuclick.data_id[id] = System._sessionStorage.menuclick.data_id[id]||"list";
+
+    System._sessionStorage.menuclick.search = System._sessionStorage.menuclick.search||{};
+
+    sessionStorage.kfs = JSON.stringify(System._sessionStorage);
+
     if(act=="close")
     {
         document.querySelectorAll("#Menu ul>div").forEach(function(div,idx){
@@ -191,7 +222,6 @@ function MenuClick(id,act)
 
     if(id=="char_info")
     {
-        System.char_bonus_set = JSON.parse(JSON.stringify(System.char));
 
         var str = System.c_s_word;
 
@@ -240,44 +270,135 @@ function MenuClick(id,act)
 
     if(id=="char_list")
     {
-        DB.ref("/char/").once( "value",function(_r){
-            _r = _r.val();
-            
-            var title = {
-                "0":{
-                    "title":"玩家名稱",
-                    "html":"name_account"},
-                "2":{
-                    "title":"最後活動時間",
-                    "html":"time_last_word"}
-            };
-            var list = [];
-
-
-            for(var key in _r)
-            {
-                var char = _r[key];
-
-                if(char.name==="") continue;
-
-                var list_idx = list.length;
+        if(System._sessionStorage.menuclick.data_id[id]!="list")
+        {
+            var _div = document.createElement("div");
+            _div.className = "info btn";
+            _div.innerHTML = "回到列表";
+            _div.addEventListener("click",function(){
                 
-                list[ list_idx ] = char;
-
-                list[ list_idx ]["name_account"] = 
-                "【"+char.name + "】";
-
-                list[ list_idx ]["time_last_word"] = 
-                DateFormat( new Date(char.time_last) );
-            }
+                System._sessionStorage.menuclick.data_id[id] = "list";
+                sessionStorage.kfs = JSON.stringify(System._sessionStorage);
+                MenuClick("char_list","open");
+            });
+            div.appendChild(_div);
             
 
-            list = SortData(list,"time_last",1);
+            DB.ref("/char/"+System._sessionStorage.menuclick.data_id[id]).once( "value",function(char){
+                char = char.val();
+                if(char===null)
+                {
+                    System._sessionStorage.menuclick.data_id[id] = "list";
+                    sessionStorage.kfs = JSON.stringify(System._sessionStorage);
+                    MenuClick("char_list","open");
+                    return;
+                }
 
-            ListMake(title,list,div,id);
-        });
+                var str = System.c_s_word;
+                for(var i in System.char_default)
+                {
+                    if(str[i]===undefined) continue;
 
-        return;
+                    menu[i] = {
+                        "type":"text",
+                        "span":str[i],
+                        "disabled":"disabled",
+                        "value":JSON.parse(JSON.stringify(char[i])),
+                        "class":"number"
+                    }
+
+                    if(i=="item") menu[i].value = char.item.money;              
+                }
+                menu.name.class = "";
+                
+                RowMake(menu,div,id);
+
+            });
+        }
+        else
+        {
+            var search_div = document.createElement("div");
+            search_div.className = "info";
+            var btn_span = document.createElement("span");
+            btn_span.className = "btn";
+            btn_span.innerHTML = "搜尋";
+            var btn_input = document.createElement("input");
+            btn_input.type = "text";
+            btn_input.id = "search_keyword";
+            btn_input.value = System._sessionStorage.menuclick.search.keyword||"";
+            search_div.appendChild(btn_input);
+            search_div.appendChild(btn_span);
+            div.appendChild(search_div);
+
+            btn_span.addEventListener("click",function(){
+                var search_keyword = document.querySelector("#search_keyword").value;
+                
+                System._sessionStorage.menuclick.search.keyword = search_keyword;
+                sessionStorage.kfs = JSON.stringify(System._sessionStorage);
+                MenuClick(id,"close");
+                return;
+                
+            });
+
+
+            DB.ref("/char/").once( "value",function(_r){
+                _r = _r.val();
+                
+                var title = {
+                    "0":{
+                        "title":"玩家名稱",
+                        "class":"btn",
+                        "id":"id",
+                        "html":"name_account",
+                        "event":{"click":function(){
+                            
+                            System._sessionStorage.menuclick.data_id[id] = this.id;
+                            sessionStorage.kfs = JSON.stringify(System._sessionStorage);
+
+                            MenuClick("char_list","open");
+                            return;
+                        }}
+                    },
+                    "2":{
+                        "title":"最後活動時間",
+                        "html":"time_last_word"}
+                };
+                var list = [];
+
+
+                for(var key in _r)
+                {
+                    var char = _r[key];
+
+                    if(char.name==="") continue;
+
+                    if(System._sessionStorage.menuclick.search.keyword!="" && System._sessionStorage.menuclick.search.keyword!=undefined)
+                    {
+                        if(char.name.toString().indexOf(System._sessionStorage.menuclick.search.keyword)==-1)
+                        continue;
+                    }
+
+                    var list_idx = list.length;
+                    
+                    list[ list_idx ] = char;
+
+                    list[ list_idx ].id = key;
+
+                    list[ list_idx ].name_account = 
+                    "【"+char.name + "】";
+
+                    list[ list_idx ].time_last_word = 
+                    DateFormat( new Date(char.time_last) );
+                }
+                
+
+                list = SortData(list,"time_last",1);
+
+                ListMake(title,list,div,id);
+            });
+
+            return;
+        }
     }
 
 
@@ -315,7 +436,9 @@ function MenuClick(id,act)
                     "value":"已加入遊戲，不可建立新遊戲，前往已加入遊戲",
                     "span":"",
                     "event":{"click":function(){
-                        System.content = System.char.game_sn;
+                        
+                        System._sessionStorage.menuclick.data_id[id] = System.char.game_sn;
+                        sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                         MenuClick("game_list","close");
                     }}
                 };
@@ -329,15 +452,17 @@ function MenuClick(id,act)
 
     if(id=="game_list")
     {
-        if(System.content!=="list")
+        if(System._sessionStorage.menuclick.data_id[id]!="list")
         {
-
             var _div = document.createElement("div");
             _div.className = "info btn";
             _div.innerHTML = "回到列表";
             _div.addEventListener("click",function(){
-                System.content = "list";
+                
+                System._sessionStorage.menuclick.data_id[id] = "list";
+                sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                 MenuClick(id,"open");
+
             });
             div.appendChild(_div);
 
@@ -353,11 +478,11 @@ function MenuClick(id,act)
 
             var _div = document.createElement("div");
             _div.className = "info";
-            _div.innerHTML = "【"+System.content+"】";
+            _div.innerHTML = "【"+System._sessionStorage.menuclick.data_id[id]+"】";
             div.appendChild(_div);
 
 
-            DB.ref("/game/"+System.content).once( "value",function(game){
+            DB.ref("/game/"+System._sessionStorage.menuclick.data_id[id]).once( "value",function(game){
                 game = game.val();
 
                 DB.ref("/char/"+System.member.account).once( "value",function(char){
@@ -366,7 +491,8 @@ function MenuClick(id,act)
                     
                     if(game===null)
                     {
-                        System.content = "list";
+                        System._sessionStorage.menuclick.data_id[id] = "list";
+                        sessionStorage.kfs = JSON.stringify(System._sessionStorage);
 
                         System.char.game_sn = "";
                         System.char.game_day = "";
@@ -469,8 +595,10 @@ function MenuClick(id,act)
                                 "value":"已加入其他遊戲，前往已加入遊戲",
                                 "span":"",
                                 "event":{"click":function(){
-                                    System.content = System.char.game_sn;
+                                    System._sessionStorage.menuclick.data_id[id] = this.id;
+                                    sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                                     MenuClick("game_list","close");
+                                    return;
                                 }}
                             };
                         }
@@ -598,6 +726,19 @@ function MenuClick(id,act)
                             "html":"ready_status",
                         }
                     ];
+
+                    if(game.end==="end")
+                    {
+                        title["0"].event = {
+                            "click":function(){
+                                System._sessionStorage.menuclick.data_id[id] = this.id;
+                                sessionStorage.kfs = JSON.stringify(System._sessionStorage);
+                                MenuClick("char_list","close");
+                                return;
+                            }
+                        }
+                    }
+
                     
 
                     if(game.char_create!=System.member.account || 
@@ -614,7 +755,48 @@ function MenuClick(id,act)
                     title[ Object.keys(title).length ] = 
                     {
                         "title":"玩家狀態",
-                        "html":"action_end"
+                        "class":"btn",
+                        "id":"id",
+                        "html":"action_end",
+                        "event":{"click":function(){
+                            if(confirm("確定要強制死亡【"+game.char_list[this.id].nickname+"】玩家嗎?\n(注意:強制死亡該玩家會有金錢懲罰)")==false) return;
+
+
+                            if(game.nowtime=="human")
+                            {
+                                if(game.char_list[this.id].vote[ game.nowday ].value!="" || 
+                                game.char_list[this.id].pass[ game.nowday ].value!="")
+                                {
+                                    if( confirm("【"+game.char_list[this.id].nickname+"】玩家已行動，確定仍要強制死亡嗎?\n(注意:強制死亡該玩家會有金錢懲罰)")==false) return;
+                                    
+                                }
+                            }
+                            else
+                            {
+                                if(game.char_list[this.id].pass[ game.nowday ].value!="")
+                                {
+                                    if( confirm("【"+game.char_list[this.id].nickname+"】玩家已行動，確定仍要強制死亡嗎?\n(注意:強制死亡該玩家會有金錢懲罰)")==false) return;
+                                }
+                            }
+
+                            var char_dead = {};
+                            char_dead.dead = {
+                                "status":"dead",
+                                "day":game.nowday,
+                                "time":firebase.database.ServerValue.TIMESTAMP,
+                                "type":"kick"
+                            }
+                            var char_money = {};
+                            char_money.item = {"money":game.char_list[this.id].item.money - (20*Object.keys(game.char_list).length)};
+                            
+
+                            DB.ref("/game/"+game.sn+"/char_list/"+this.id).update(char_dead);
+
+                            DB.ref("/char/"+this.id).update(char_money);
+
+                            MenuClick("game_list","close");
+                            return;
+                        }}
                     };
 
 
@@ -649,6 +831,10 @@ function MenuClick(id,act)
                     
 
                     var list = [];
+                    var dead_type_word = {
+                        "vote":"被村民吊死",
+                        "wolf":"被狼人咬死",
+                        "kick":"強制死亡"};
                     for(var account in game.char_list)
                     {
                         var list_idx = list.length;
@@ -674,10 +860,8 @@ function MenuClick(id,act)
                             var memo = "";
                             memo += "第"+game.char_list[account].dead.day+"天";
 
-                            if(game.char_list[account].dead.type==="vote")
-                                memo += "被村民吊死";
-                            else
-                                memo += "被人狼咬死";
+
+                            memo += dead_type_word[ game.char_list[account].dead.type ];
 
                             list[ list_idx ].nickname_word = '<s>【'+game.char_list[account].nickname+'】(死亡)</s><BR>'+memo;
                         }
@@ -726,7 +910,6 @@ function MenuClick(id,act)
                                     else
                                         list[ list_idx ]._divine_psychic = "第"+_day+"天占卜結果<BR>【人類】";
                                 }
-                                
                             }
                         }
 
@@ -751,10 +934,11 @@ function MenuClick(id,act)
                             }
                         }
                         
-                        if(account.toString()===System.member.account || 
-                        game.char_list[account].dead.status==="dead")
+                        if((account.toString()===System.member.account || 
+                        game.char_list[account].dead.status==="dead") && 
+                        game.end!="end")
                         {
-                            //list[ list_idx ].class = "btn";
+                            list[ list_idx ].class = "btn";
                             list[ list_idx ].event = "remove";
                         }
 
@@ -797,7 +981,10 @@ function MenuClick(id,act)
                     }
 
                     if(System.char.game_sn==game.sn || game.end=="end")
+                    {
                         delete menu.game_nickname;
+                        delete menu.game_password;
+                    }
                     
 
                     if(game["game_password"]==="")
@@ -814,6 +1001,30 @@ function MenuClick(id,act)
         else//if(System.content!=="list")
         {
 
+            var search_div = document.createElement("div");
+            search_div.className = "info";
+            var btn_span = document.createElement("span");
+            btn_span.className = "btn";
+            btn_span.innerHTML = "搜尋";
+            var btn_input = document.createElement("input");
+            btn_input.type = "text";
+            btn_input.id = "search_keyword";
+            btn_input.value = System._sessionStorage.menuclick.search.keyword||"";
+            search_div.appendChild(btn_input);
+            search_div.appendChild(btn_span);
+            div.appendChild(search_div);
+
+            btn_span.addEventListener("click",function(){
+                var search_keyword = document.querySelector("#search_keyword").value;
+                
+                System._sessionStorage.menuclick.search.keyword = search_keyword;
+                sessionStorage.kfs = JSON.stringify(System._sessionStorage);
+                MenuClick(id,"close");
+                return;
+                
+            });
+
+
 
             DB.ref("/game/").once( "value",function(game){
 
@@ -826,7 +1037,8 @@ function MenuClick(id,act)
                         "class":"btn",
                         "id":"sn",
                         "event":{"click":function(){
-                            System.content = this.id;
+                            System._sessionStorage.menuclick.data_id[id] = this.id;
+                            sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                             MenuClick(id,"open");
                             return;
                         }}
@@ -846,6 +1058,13 @@ function MenuClick(id,act)
 
                 for(var key in game)
                 {
+
+                    if(System._sessionStorage.menuclick.search.keyword!="" && System._sessionStorage.menuclick.search.keyword!=undefined)
+                    {
+                        if(game[key].name.toString().indexOf(System._sessionStorage.menuclick.search.keyword)==-1)
+                        continue;
+                    }
+
                     var list_idx = list.length;
                     
                     list[ list_idx ] = game[key];
@@ -877,7 +1096,8 @@ function GameFunc(act,id = "")
 
             if(game===null)
             {
-                System.content = "list";
+                System._sessionStorage.menuclick.data_id[id] = "list";
+                sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                 MenuClick("game_list","open");
                 return;
             }
@@ -1129,12 +1349,10 @@ function GameFunc(act,id = "")
         new_game.time_last = firebase.database.ServerValue.TIMESTAMP;
         new_game.nowday = "0";
         new_game.nowtime = "";//wolf夜晚,human白天
+        new_game.win = "";
         
 
         System.char.game_sn = new_game.sn;
-        System.char.game_day = "0";
-        System.char.game_time = "";
-        System.char.game_end = "";
 
         DB.ref("/item/").once( "value",function(item){
             item = item.val();
@@ -1153,12 +1371,13 @@ function GameFunc(act,id = "")
 
     if(act=="quit")
     {
-        DB.ref("/game/"+System.content).once( "value",function(game){
+        DB.ref("/game/"+System._sessionStorage.menuclick.data_id[id]).once( "value",function(game){
             game = game.val();
 
             if(game===null)
             {
-                System.content = "list";
+                System._sessionStorage.menuclick.data_id[id] = "list";
+                sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                 MenuClick("game_list","open");
                 return;
             }
@@ -1208,12 +1427,13 @@ function GameFunc(act,id = "")
 
     if(act=="join")
     {
-        DB.ref("/game/"+System.content).once( "value",function(game){
+        DB.ref("/game/"+System._sessionStorage.menuclick.data_id[id]).once( "value",function(game){
             game = game.val();
 
             if(game===null)
             {
-                System.content = "list";
+                System._sessionStorage.menuclick.data_id[id] = "list";
+                sessionStorage.kfs = JSON.stringify(System._sessionStorage);
                 MenuClick("game_list","open");
                 return;
             }
@@ -1529,10 +1749,7 @@ function GameStart(div,game,id)
                     System.char.action = game.char_list[System.member.account].job;
                     alert("點擊玩家列表決定要"+action_word[ game.char_list[System.member.account].job ]+"的對象");
 
-                    if(System.char.action!=="psychic")
-                        Focus(".vote");
-                    else
-                        Focus(".dead");
+                    Focus(".vote");
                 }}
                 };
             }
@@ -1575,6 +1792,11 @@ function GameStart(div,game,id)
             log[ i ] = [];
             
             
+            var dead_type_word = {
+                "vote":"被村民吊死",
+                "wolf":"被狼人咬死",
+                "kick":"強制死亡"}
+
             for(var _a in game.char_list)
             {
                 
@@ -1610,9 +1832,9 @@ function GameStart(div,game,id)
 
                 if(game.char_list[_a].dead.status=="dead" && i!==0)
                 if(game.char_list[_a].dead.day==i)
-                {                
-                    var dead_type = "被村民吊死";
-                    if( game.char_list[_a].dead.type=="wolf" ) dead_type = "被狼人咬死";
+                {
+                    dead_type = dead_type_word[ game.char_list[_a].dead.type ];
+
 
                     log[ i ][ log[i].length ] = {
                         "log_account":_a,
@@ -1987,14 +2209,6 @@ function Vote(choice)
                 {
                     if(game.nowtime=="human")//白天吊人
                     {
-                        if(_vote_key.length==0)
-                        {
-                            
-                        }
-                        console.log(_vote_key);
-                        return;
-
-                        if(_vote_key.length<=2)
                         for(var key in _vote_key)
                         {
                             if(_vote_key[key]=="pass") continue;
@@ -2010,12 +2224,9 @@ function Vote(choice)
                     }
                     else//晚上
                     {
-                        
                         var psychic_id = "";
                         for(var account in game.char_list)
                         {
-                            //console.log( JSON.parse(JSON.stringify( _target)) );
-
                             if(game.char_list[account][ game.char_list[account].job ][ day ]!==undefined)
                             {
                                 if(_target[ game.char_list[account].job ]!="")
@@ -2072,8 +2283,6 @@ function Vote(choice)
                         }
                     }
 
-
-
                     var _human = 0,_wolf = 0;
                     for(var account in game.char_list)
                     {
@@ -2086,6 +2295,11 @@ function Vote(choice)
                     if(_human===0 || _wolf===0 || _human===_wolf)
                     {
                         game.end = "end";
+
+                        if(_human===0) 
+                            game.win = "wolf";
+                        else
+                            game.win = "human";
 
                         Award(game,_wolf);
                     }
@@ -2195,7 +2409,8 @@ function BuyItem(name)
 
         if(game===null)
         {
-            System.content = "list";
+            System._sessionStorage.menuclick.data_id[id] = "list";
+            sessionStorage.kfs = JSON.stringify(System._sessionStorage);
 
             System.char.game_sn = "";
             System.char.game_day = "";

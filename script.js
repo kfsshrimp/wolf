@@ -6,6 +6,7 @@ var System = {
     "time":null,
     "focus_timer":null,
     "content":"list",
+    "search":{},
     "SerialNumber":null,
     "char_default":{
         "name":"",
@@ -89,7 +90,8 @@ var System = {
         "wolf":"人狼",
         "divine":"先知",
         "human":"村民"
-    }
+    },
+    "_sessionStorage":{}
 };
 
 window.onload = function()
