@@ -125,6 +125,7 @@ div#Mask.off{
 
 #Main div.chat>ul>li>table{
     width:100%;
+    font-size: xx-small;
 }
 #Main div.chat>ul>li>table span.time{
     float:right;
