@@ -114,20 +114,22 @@ function MenuClick(id,act)
     if(id=="chat")
     {
         CreateChat(div,id);
+        return;
     }
 
     if(id=="chat_wolf")
     {
         CreateChat(div,id);
+        return;
     }
 
     document.querySelectorAll("#Menu ul>div").forEach(function(div,idx){
         div.innerHTML = "";
     });
     document.querySelector("div#"+id).appendChild(div);
+
     setTimeout(function(){
-        document.querySelector("div#"+id).style.height = "80%";
-        //document.querySelector("div#"+id).style.height = document.querySelector("div#"+id+" div#Main").clientHeight + "px";
+        document.querySelector("div#"+id).style.height = document.querySelector("div#"+id+" div#Main").clientHeight + "px";
     },0);
 }
 
@@ -148,8 +150,9 @@ function CreateChat(div,id,day = System.select_day)
     {
         var btn_span = document.createElement("span");
         btn_span.className = "btn";
-        btn_span.innerHTML = "發言<BR><BR>";
+        btn_span.innerHTML = "發言";
         send_msg_div.appendChild(btn_span);
+        send_msg_div.appendChild(document.createElement("p"));
         
         btn_span.addEventListener("click",function(){
             var text = document.querySelector("#text").value;
@@ -279,6 +282,17 @@ function CreateChat(div,id,day = System.select_day)
         
         
         div.appendChild(_div);
+
+        
+        document.querySelectorAll("#Menu ul>div").forEach(function(div,idx){
+            div.innerHTML = "";
+        });
+        document.querySelector("div#"+id).appendChild(div);
+
+        setTimeout(function(){
+            document.querySelector("div#"+id).style.height = "80%";
+            //document.querySelector("div#"+id).style.height = document.querySelector("div#"+id+" div#Main ul").clientHeight  + "px";
+        },0);
 
     });    
 }
