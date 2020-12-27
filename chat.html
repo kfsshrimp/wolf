@@ -146,7 +146,9 @@ function CreateChat(div,id,day = System.select_day)
     var send_msg_div = document.createElement("div");
     send_msg_div.className = "info";
 
-    if(System.game.char_list[ System.member.account ]!==undefined)
+    if(System.game.char_list[ System.member.account ]!==undefined && 
+    System.game.char_list[ System.member.account ].dead.status!="dead"
+    )
     {
         var btn_span = document.createElement("span");
         btn_span.className = "btn";
@@ -182,6 +184,10 @@ function CreateChat(div,id,day = System.select_day)
             MenuClick(id,"close");
             return;
         });
+
+        var textarea = document.createElement("textarea");
+        textarea.id = "text";
+        div.appendChild(textarea);
     }
     
     var day_select = document.createElement("select");
@@ -211,9 +217,7 @@ function CreateChat(div,id,day = System.select_day)
 
 
 
-    var textarea = document.createElement("textarea");
-    textarea.id = "text";
-    div.appendChild(textarea);
+    
     
      
 
