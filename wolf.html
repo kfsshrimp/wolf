@@ -1162,6 +1162,8 @@ function GameFunc(act,id = "")
                 return;
             }
 
+            if(confirm("確定要開始遊戲嗎?")==false) return;
+
             for(var item_name in use_item_list)
             {
                 var job = game.item[item_name].job;
