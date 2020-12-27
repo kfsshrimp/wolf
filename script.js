@@ -1,4 +1,3 @@
-
 var System = {
     "version":2,
     "config":null,
@@ -35,7 +34,7 @@ var System = {
         "human_win":"人勝場數",
         "wolf_lose":"狼敗場數",
         "human_lose":"人敗場數",
-        "item":"持有金錢",
+        "item":"持有金錢"
     },
     "create_game_row":{
         "name":{
@@ -106,17 +105,11 @@ var DB = firebase;DB.initializeApp({databaseURL: "https://kfswolf-default-rtdb.f
 
 
 DB = DB.database();
-DB.ref("/system/config").once( "value",_sys=>{ 
-    System.config = _sys.val();
+DB.ref("/system/config").once( "value",config=>{ 
+    System.config = config.val();
 
     document.title = "網頁狼人【版本:"+System.version+"】";
 
-    if( CheckVersion()===false )
-    {
-        alert("遊戲版本不符，請更新遊戲版本");
-        return;
-    }
-    
     Main();
 
 });
@@ -387,12 +380,3 @@ function CheckMobile()
 {//true手機行動裝置 false非手機
     return (navigator.userAgent.indexOf("Mobile")!==-1)?true:false;
 }
-function CheckVersion()
-{
-    if(System.config.version!=System.version)
-    {
-        return false;
-    }
-    return true;
-}
-
