@@ -148,7 +148,7 @@ function CreateChat(div,id,day = System.select_day)
     {
         var btn_span = document.createElement("span");
         btn_span.className = "btn";
-        btn_span.innerHTML = "發言";
+        btn_span.innerHTML = "發言<BR><BR>";
         send_msg_div.appendChild(btn_span);
         
         btn_span.addEventListener("click",function(){
@@ -192,7 +192,7 @@ function CreateChat(div,id,day = System.select_day)
         day_select.appendChild(opt);
     }
     var day_span = document.createElement("span");
-    day_span.innerHTML = "<BR><BR>目前顯示第"+day+"天訊息<BR>選擇其他天";
+    day_span.innerHTML = "目前顯示第"+day+"天訊息<BR>選擇其他天";
 
     day_select.addEventListener("change",function(){
         if(this.value!="")
