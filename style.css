@@ -1,3 +1,4 @@
+
 body{
     background:#555;
 }
@@ -24,6 +25,16 @@ input[type=password]:focus{
     background: #fff;
 }
 
+select{
+    border-radius: 10px;
+    outline: none;
+    background: #ccc;
+    color: #000;
+}
+
+
+
+
 input.number{
     margin:0 1px 0 1px;
     max-width:40px;
@@ -32,18 +43,6 @@ input.number{
 input.battle{
     float: left;
 }
-
-textarea{
-    background: #ccc;
-    color:#000;
-    width: 100%;
-    height: 60px;
-    margin: 4px 0;
-}
-textarea:focus{
-    background: #fff;
-}
-
 
 div#Mask{
     background:#555;
@@ -59,14 +58,20 @@ div#Mask.off{
 }
 
 
+ul li{
+    list-style: none;
+    margin: 4px;
+    padding: 2px 8px 2px 8px;
+}
 
 
-#Menu ul{
+
+#Menu>ul{
     margin: 0px;
     padding: 0px;
 }
 
-#Menu ul li{
+#Menu>ul>li{
     border: 1px solid #000;
     background: #ccc;
     color:#000;
@@ -96,44 +101,6 @@ div#Mask.off{
     padding: 10px;
 }
 
-#Main div.chat{
-    border: 1px solid #000;
-    border-radius: 10px;
-    padding: 4px;
-    margin: 2px;
-    height: 70%;
-    overflow-y: scroll;
-}
-#Main div.info>span.btn{
-    border: 1px solid #000;
-    border-radius: 5px;
-    cursor: pointer;
-    padding: 2px 10px;
-    margin: 0px 5px;
-}
-#Main div.info>span.btn:hover{
-    background: #000;
-    color:#fff;
-}
-#Main div.info select{
-    background: #ccc;
-    color:#000;
-    border-radius: 5px;
-    margin:0px 5px;
-    width: 70px;
-}
-
-
-#Main div.chat>ul>li>table{
-    width:100%;
-    font-size: xx-small;
-}
-#Main div.chat>ul>li>table span.time{
-    float:right;
-}
-
-
-
 #Main div.info{
     border: 1px solid #000;
     border-radius: 10px;
@@ -156,7 +123,7 @@ div#Mask.off{
     clear: both; 
 }
 
-#Main div.row span{
+#Main span{
     float: left;
     margin-right: 6px;
 }
@@ -166,6 +133,28 @@ div#Mask.off{
     
 }
 
+#Main div.line{
+    float: left;
+    width: 100px;
+    height: 16px;
+    border-radius: 10px;
+    background: #fff;
+}
+
+#Main div.attack_line{
+    margin: 4px;
+    height: 16px;
+    padding: 0 0 0 20px;
+    font-size: x-small;
+    color: #fff;
+    width: 180px;
+    border-radius: 10px;
+}
+
+
+#CacheDiv{
+    display:none;
+}
 
 #ListTable{
 
@@ -186,12 +175,6 @@ div#Mask.off{
 }
 
 
-
-#ListTable tr td span.red{
-    color:#f00;
-}
-
-
 #Time{
     height: 20px;
     border: 1px solid #000;
@@ -208,12 +191,13 @@ div#Mask.off{
 }
 
 
-.vote{
-    transition-duration: .3s;
+
+ul#monster_skill li:not(:nth-child(1)){
+    border: 1px solid #000;
+    border-radius: 10px;
+    padding: 10px;
 }
 
-.focus{
-    background: #ff0;
-    transition-duration: .3s;
+ul#monster_skill span{
+    float:none;
 }
-
